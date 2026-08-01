@@ -1,0 +1,29 @@
+body{
+    background:#ffffff;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.feature-card{
+    transition:.4s;
+    cursor:pointer;
+}
+
+.feature-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0px 20px 40px rgba(0,0,0,.15);
+
+}
+
+.btn{
+
+    transition:.3s;
+
+}
+
+.btn:hover{
+
+    transform:scale(1.05);
+
+} 
