@@ -1,24 +1,21 @@
-# Node modules
+# Dependencies
 node_modules/
 
-# Environment variables
+# Build
+dist/
+
+# Environment Variables
 .env
 server/.env
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-
-# Build
-dist/
-
-# Vite
-.vite/
-
-# OS files
-.DS_Store
-Thumbs.db
+pnpm-debug.log*
 
 # VS Code
 .vscode/
+
+# OS Files
+Thumbs.db
+.DS_Store
