@@ -3,16 +3,19 @@ import { ToastContainer } from "react-toastify";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import RegisterWorker from "./pages/RegisterWorker";
 import RegisterEmployer from "./pages/RegisterEmployer";
+import WorkerDashboard from "./pages/WorkerDashboard";
 
 function App() {
   return (
     <BrowserRouter>
+
       {/* Navbar */}
       <Navbar />
 
@@ -20,13 +23,22 @@ function App() {
       <Routes>
 
         {/* Home */}
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
         {/* About */}
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/about"
+          element={<About />}
+        />
 
-        {/* Authentication */}
-        <Route path="/login" element={<Login />} />
+        {/* Login */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
         {/* Worker Registration */}
         <Route
@@ -38,6 +50,16 @@ function App() {
         <Route
           path="/register-employer"
           element={<RegisterEmployer />}
+        />
+
+        {/* Protected Worker Dashboard */}
+        <Route
+          path="/worker-dashboard"
+          element={
+            <ProtectedRoute>
+              <WorkerDashboard />
+            </ProtectedRoute>
+          }
         />
 
         {/* 404 Page */}
@@ -75,8 +97,10 @@ function App() {
         closeOnClick
         pauseOnHover
         draggable
+        pauseOnFocusLoss
         theme="colored"
       />
+
     </BrowserRouter>
   );
 }
