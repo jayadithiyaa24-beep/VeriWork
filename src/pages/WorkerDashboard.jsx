@@ -453,26 +453,29 @@ function WorkerDashboard() {
         {/* ================================= */}
 
         <div
-          className="card border-0 shadow-sm mb-4"
+          className="veriwork-card-dark p-4 p-md-5 mb-4 position-relative overflow-hidden"
           style={{
-            background:
-              "linear-gradient(90deg,#2563eb,#4f46e5)",
-            color: "white",
+            borderRadius: "24px",
           }}
         >
-
-          <div className="card-body p-4">
-
-            <h3>
-              Welcome, {worker.fullName} 👋
-            </h3>
-
-            <p className="mb-0">
-              Your verified work identity is ready.
-            </p>
-
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <span className="veriwork-pill-badge mb-2 bg-white text-dark border-0">
+                DOMESTIC WORKER PASSPORT
+              </span>
+              <h2 className="fw-bold text-white mb-1" style={{ fontFamily: "var(--font-serif)" }}>
+                Welcome, {worker.fullName} 👋
+              </h2>
+              <p className="text-white-50 mb-0">
+                Your decentralized work identity is active and cryptographically anchored.
+              </p>
+            </div>
+            <div className="d-none d-md-block text-end">
+              <span className="veriwork-pill-white">
+                ● EVM CHAIN ID 31337
+              </span>
+            </div>
           </div>
-
         </div>
 
 

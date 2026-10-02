@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaUserTie, FaBuilding, FaSearch, FaShieldAlt, FaCogs, FaSignOutAlt } from "react-icons/fa";
+import { FaShieldAlt, FaBars, FaTimes, FaSignOutAlt, FaSearch, FaCogs } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 function Navbar() {
@@ -8,6 +8,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   const [userType, setUserType] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // =================================
   // CHECK LOGIN SESSION
@@ -23,6 +24,7 @@ function Navbar() {
     } else {
       setUserType(null);
     }
+    setMobileMenuOpen(false);
   }, [location.pathname]);
 
   // =================================
@@ -43,11 +45,10 @@ function Navbar() {
   // ACTIVE ROUTE HELPERS
   // =================================
   const isHomeActive = location.pathname === "/" && (!location.hash || location.hash === "#");
-  const isFeaturesActive = location.pathname === "/" && location.hash === "#features";
   const isHowItWorksActive = location.pathname === "/" && location.hash === "#how-it-works";
+  const isFeaturesActive = location.pathname === "/" && location.hash === "#features";
   const isAboutActive = location.pathname === "/about";
-  const isVerifyCertificateActive = location.pathname === "/verify-certificate";
-  const isAdminActive = location.pathname === "/admin";
+  const isVerifyActive = location.pathname === "/verify-certificate";
 
   // =================================
   // LOGOUT
@@ -79,274 +80,224 @@ function Navbar() {
   };
 
   return (
-    <nav className="vw-web3-navbar sticky-top">
+    <nav className="vw-navbar sticky-top">
       <div className="container py-2">
         <div className="d-flex align-items-center justify-content-between">
           
-          {/* Logo Brand */}
-          <Link className="vw-brand d-flex align-items-center gap-2" to="/">
-            <div className="vw-brand-icon">
-              <FaShieldAlt />
+          {/* Logo on Left */}
+          <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
+            <div className="vw-logo-mark">
+              <FaShieldAlt size={16} />
             </div>
-            <div>
-              <span className="vw-brand-name">VeriWork</span>
-              <span className="vw-brand-badge">WEB3</span>
+            <div className="d-flex flex-column">
+              <span className="vw-logo-title">VeriWork</span>
+              <span className="vw-logo-tagline d-none d-sm-inline">Trusted Work. Verified Identity.</span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="d-none d-lg-flex align-items-center gap-1 vw-nav-links">
-            <Link className={`vw-nav-item ${isHomeActive ? "active" : ""}`} to="/">
+          {/* Desktop Center Navigation Links */}
+          <div className="d-none d-lg-flex align-items-center gap-1 vw-nav-center">
+            <Link className={`vw-nav-link ${isHomeActive ? "active" : ""}`} to="/">
               Home
             </Link>
-            <Link className={`vw-nav-item ${isFeaturesActive ? "active" : ""}`} to="/#features">
-              Features
-            </Link>
-            <Link className={`vw-nav-item ${isHowItWorksActive ? "active" : ""}`} to="/#how-it-works">
+            <Link className={`vw-nav-link ${isHowItWorksActive ? "active" : ""}`} to="/#how-it-works">
               How It Works
             </Link>
-            <Link className={`vw-nav-item ${isAboutActive ? "active" : ""}`} to="/about">
+            <Link className={`vw-nav-link ${isFeaturesActive ? "active" : ""}`} to="/#features">
+              Features
+            </Link>
+            <Link className={`vw-nav-link ${isAboutActive ? "active" : ""}`} to="/about">
               About
             </Link>
-            <Link className={`vw-nav-item ${isVerifyCertificateActive ? "active" : ""}`} to="/verify-certificate">
-              <FaSearch className="me-1 opacity-75" />
-              Verify Certificate
-            </Link>
-            <Link className={`vw-nav-item ${isAdminActive ? "active" : ""}`} to="/admin">
-              <FaCogs className="me-1 opacity-75" />
-              Governance
+            <Link className={`vw-nav-link ${isVerifyActive ? "active" : ""}`} to="/verify-certificate">
+              Verify ID
             </Link>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="d-flex align-items-center gap-2">
+          {/* Right Action CTAs */}
+          <div className="d-none d-lg-flex align-items-center gap-2">
             {!userType && (
               <>
-                <Link to="/login" className="vw-btn-glass d-none d-sm-inline-flex">
-                  <FaUserTie className="text-cyan" />
-                  <span>Worker</span>
+                <Link to="/login" className="btn-veriwork-secondary py-2 px-3 text-sm">
+                  Login
                 </Link>
-
-                <Link to="/employer-login" className="vw-btn-glass d-none d-sm-inline-flex">
-                  <FaBuilding className="text-purple" />
-                  <span>Employer</span>
-                </Link>
-
-                <Link to="/register-worker" className="vw-btn-gradient">
-                  <span>Get Started</span>
+                <Link to="/get-started" className="btn-veriwork-primary py-2 px-4 text-sm">
+                  Get Started
                 </Link>
               </>
             )}
 
             {userType === "worker" && (
               <>
-                <Link to="/worker-dashboard" className="vw-btn-dashboard-worker">
+                <Link to="/worker-dashboard" className="btn-veriwork-primary py-2 px-3 text-sm">
                   👷 Worker Dashboard
                 </Link>
-                <button className="vw-btn-logout" onClick={handleLogout} title="Logout">
-                  <FaSignOutAlt />
+                <button className="btn-veriwork-secondary py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
+                  <FaSignOutAlt className="me-1" /> Logout
                 </button>
               </>
             )}
 
             {userType === "employer" && (
               <>
-                <Link to="/employer-dashboard" className="vw-btn-dashboard-employer">
+                <Link to="/employer-dashboard" className="btn-veriwork-primary py-2 px-3 text-sm">
                   🏢 Employer Dashboard
                 </Link>
-                <button className="vw-btn-logout" onClick={handleLogout} title="Logout">
-                  <FaSignOutAlt />
+                <button className="btn-veriwork-secondary py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
+                  <FaSignOutAlt className="me-1" /> Logout
                 </button>
               </>
             )}
           </div>
 
+          {/* Mobile Hamburger Toggle Button */}
+          <div className="d-lg-none">
+            <button
+              className="btn btn-link text-dark p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle Navigation"
+            >
+              {mobileMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+            </button>
+          </div>
+
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="d-lg-none mt-3 pt-3 border-top border-secondary border-opacity-10 vw-mobile-menu">
+            <div className="d-flex flex-column gap-2">
+              <Link className="vw-mobile-link" to="/" onClick={() => setMobileMenuOpen(false)}>
+                Home
+              </Link>
+              <Link className="vw-mobile-link" to="/#how-it-works" onClick={() => setMobileMenuOpen(false)}>
+                How It Works
+              </Link>
+              <Link className="vw-mobile-link" to="/#features" onClick={() => setMobileMenuOpen(false)}>
+                Features
+              </Link>
+              <Link className="vw-mobile-link" to="/about" onClick={() => setMobileMenuOpen(false)}>
+                About
+              </Link>
+              <Link className="vw-mobile-link" to="/verify-certificate" onClick={() => setMobileMenuOpen(false)}>
+                Verify Certificate
+              </Link>
+              <Link className="vw-mobile-link" to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                Governance
+              </Link>
+
+              <div className="d-flex flex-column gap-2 pt-3 mt-2 border-top border-secondary border-opacity-10">
+                {!userType ? (
+                  <>
+                    <Link to="/login" className="btn-veriwork-secondary w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
+                      Login
+                    </Link>
+                    <Link to="/get-started" className="btn-veriwork-primary w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
+                      Get Started
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to={userType === "worker" ? "/worker-dashboard" : "/employer-dashboard"}
+                      className="btn-veriwork-primary w-100 py-2 text-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <button className="btn-veriwork-secondary w-100 py-2 text-danger" onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       <style>{`
-        .vw-web3-navbar {
-          background: rgba(8, 11, 25, 0.82);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        .vw-navbar {
+          background-color: rgba(239, 236, 230, 0.95);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--color-border);
           z-index: 1030;
-          transition: all 0.3s ease;
+          transition: all 0.25s ease;
         }
 
-        .vw-brand {
-          text-decoration: none;
-          user-select: none;
-        }
-
-        .vw-brand-icon {
-          width: 38px;
-          height: 38px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #6366f1, #06b6d4);
+        .vw-logo-mark {
+          width: 36px;
+          height: 36px;
+          border-radius: var(--radius-sm);
+          background-color: var(--color-primary);
+          color: #FFFFFF;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
-          font-size: 1.1rem;
-          box-shadow: 0 0 16px rgba(99, 102, 241, 0.5);
+          box-shadow: var(--shadow-sm);
         }
 
-        .vw-brand-name {
-          font-family: var(--font-display, 'Outfit', sans-serif);
-          font-size: 1.35rem;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .vw-brand-badge {
-          margin-left: 6px;
-          font-size: 0.65rem;
+        .vw-logo-title {
+          font-family: var(--font-serif);
           font-weight: 700;
-          letter-spacing: 0.08em;
-          padding: 2px 7px;
-          border-radius: 9999px;
-          background: rgba(6, 182, 212, 0.15);
-          border: 1px solid rgba(6, 182, 212, 0.35);
-          color: #67e8f9;
+          font-size: 1.35rem;
+          color: var(--color-text);
+          line-height: 1.1;
         }
 
-        .vw-nav-links {
-          background: rgba(18, 24, 46, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 9999px;
-          padding: 4px 6px;
-        }
-
-        .vw-nav-item {
-          color: #94a3b8;
-          text-decoration: none;
-          font-size: 0.88rem;
+        .vw-logo-tagline {
+          font-size: 0.72rem;
+          color: var(--color-text-muted);
           font-weight: 500;
-          padding: 6px 14px;
-          border-radius: 9999px;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
+          letter-spacing: -0.01em;
         }
 
-        .vw-nav-item:hover {
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.06);
+        .vw-nav-center {
+          background-color: rgba(255, 255, 255, 0.6);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-pill);
+          padding: 3px 6px;
         }
 
-        .vw-nav-item.active {
-          color: #ffffff;
-          background: rgba(99, 102, 241, 0.25);
-          border: 1px solid rgba(99, 102, 241, 0.4);
-          box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
-        }
-
-        .vw-btn-glass {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          color: #e2e8f0;
-          padding: 7px 15px;
-          border-radius: 10px;
-          font-size: 0.85rem;
+        .vw-nav-link {
+          color: var(--color-text-muted);
           font-weight: 600;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          transition: all 0.2s ease;
-        }
-
-        .vw-btn-glass:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.3);
-          color: #ffffff;
-          transform: translateY(-1px);
-        }
-
-        .vw-btn-gradient {
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-          border: none;
-          color: #ffffff;
-          padding: 8px 18px;
-          border-radius: 10px;
-          font-size: 0.88rem;
-          font-weight: 600;
-          font-family: var(--font-display, 'Outfit', sans-serif);
-          text-decoration: none;
-          box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-          transition: all 0.25s ease;
-          display: inline-flex;
-          align-items: center;
-        }
-
-        .vw-btn-gradient:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55);
-          filter: brightness(1.1);
-          color: #ffffff;
-        }
-
-        .vw-btn-dashboard-worker {
-          background: rgba(6, 182, 212, 0.15);
-          border: 1px solid rgba(6, 182, 212, 0.4);
-          color: #67e8f9;
-          padding: 7px 16px;
-          border-radius: 10px;
-          font-size: 0.88rem;
-          font-weight: 600;
+          font-size: 0.92rem;
+          padding: 7px 18px;
+          border-radius: var(--radius-pill);
           text-decoration: none;
           transition: all 0.2s ease;
         }
 
-        .vw-btn-dashboard-worker:hover {
-          background: rgba(6, 182, 212, 0.25);
-          color: #ffffff;
-          box-shadow: 0 0 16px rgba(6, 182, 212, 0.3);
+        .vw-nav-link:hover {
+          color: var(--color-text);
+          background-color: rgba(255, 255, 255, 0.9);
         }
 
-        .vw-btn-dashboard-employer {
-          background: rgba(99, 102, 241, 0.15);
-          border: 1px solid rgba(99, 102, 241, 0.4);
-          color: #a5b4fc;
-          padding: 7px 16px;
-          border-radius: 10px;
-          font-size: 0.88rem;
+        .vw-nav-link.active {
+          color: #FFFFFF;
+          background-color: var(--color-primary-dark);
+          box-shadow: 0 2px 8px rgba(55, 71, 56, 0.2);
+        }
+
+        .vw-mobile-link {
+          color: var(--color-text);
           font-weight: 600;
-          text-decoration: none;
-          transition: all 0.2s ease;
-        }
-
-        .vw-btn-dashboard-employer:hover {
-          background: rgba(99, 102, 241, 0.25);
-          color: #ffffff;
-          box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
-        }
-
-        .vw-btn-logout {
-          background: rgba(239, 68, 68, 0.12);
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          color: #f87171;
+          font-size: 1rem;
           padding: 8px 12px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
+          border-radius: var(--radius-sm);
+          text-decoration: none;
         }
 
-        .vw-btn-logout:hover {
-          background: rgba(239, 68, 68, 0.25);
-          color: #ffffff;
-          box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+        .vw-mobile-link:hover {
+          background-color: rgba(255, 255, 255, 0.6);
         }
 
-        .text-cyan { color: #06b6d4; }
-        .text-purple { color: #a855f7; }
+        .text-sm {
+          font-size: 0.9rem;
+        }
       `}</style>
     </nav>
   );

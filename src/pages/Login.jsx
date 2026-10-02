@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaUserTie, FaLock, FaEnvelope, FaArrowRight } from "react-icons/fa";
+import { FaUserCheck, FaLock, FaEnvelope, FaShieldAlt, FaArrowRight } from "react-icons/fa";
 import { loginWorker } from "../services/authService";
 
 function Login() {
@@ -42,7 +42,7 @@ function Login() {
 
       setTimeout(() => {
         navigate("/worker-dashboard");
-      }, 800);
+      }, 600);
     } catch (error) {
       console.error(error);
       toast.error(
@@ -54,122 +54,136 @@ function Login() {
   };
 
   return (
-    <div className="vw-auth-container py-5">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-7 col-lg-5">
-            
-            <div className="glass-card p-4 p-sm-5 text-start position-relative">
-              
-              {/* Header */}
-              <div className="text-center mb-4">
-                <div className="vw-auth-badge mx-auto mb-3">
-                  <FaUserTie size={24} />
-                </div>
-                <h3 className="fw-bold text-white mb-1">
-                  Worker <span className="text-gradient-cyan">Login</span>
-                </h3>
-                <p className="text-muted small">
-                  Access your portable digital work passport & ratings
-                </p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit}>
+    <div className="vw-auth-split-wrapper py-5">
+      <div className="container py-3">
+        <div className="row g-0 justify-content-center">
+          
+          <div className="col-lg-10 col-xl-9">
+            <div className="veriwork-card overflow-hidden shadow-lg border-0">
+              <div className="row g-0">
                 
-                {/* Email */}
-                <div className="mb-3">
-                  <label className="form-label d-flex align-items-center gap-2">
-                    <FaEnvelope className="text-cyan small" />
-                    <span>Email Address</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control"
-                    placeholder="worker@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
+                {/* Left Side: Earthy Branded Visual Panel */}
+                <div className="col-md-5 d-none d-md-flex flex-column justify-content-between p-4 p-lg-5 vw-auth-sidebar">
+                  <div>
+                    <span className="veriwork-pill-badge mb-3 bg-white text-dark border-0">
+                      WORKER IDENTITY
+                    </span>
+                    <h2 className="display-6 fw-bold text-white mb-3" style={{ fontFamily: "var(--font-serif)" }}>
+                      Trusted Work.<br />Verified Identity.
+                    </h2>
+                    <p className="text-white-50 small mb-0" style={{ lineHeight: "1.7" }}>
+                      Access your portable digital work passport, view completed jobs, and manage your blockchain employment credentials.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-3 bg-black bg-opacity-20 text-white-50 small border border-white border-opacity-10 mt-4">
+                    <div className="d-flex align-items-center gap-2 mb-1 text-white fw-semibold">
+                      <FaShieldAlt className="text-warning" size={13} />
+                      <span>Zero-Knowledge Privacy</span>
+                    </div>
+                    <span>Your Aadhaar number is hashed via SHA-256 and never shared raw.</span>
+                  </div>
                 </div>
 
-                {/* Password */}
-                <div className="mb-4">
-                  <label className="form-label d-flex align-items-center gap-2">
-                    <FaLock className="text-cyan small" />
-                    <span>Password</span>
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
+                {/* Right Side: Clean Login Form */}
+                <div className="col-md-7 p-4 p-lg-5 bg-white text-start">
+                  
+                  <div className="mb-4">
+                    <span className="veriwork-pill-sage mb-2">
+                      DOMESTIC WORKER
+                    </span>
+                    <h3 className="fw-bold text-dark mb-1">
+                      Welcome Back
+                    </h3>
+                    <p className="text-muted small">
+                      Please enter your account details to access your dashboard.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit}>
+                    
+                    {/* Email */}
+                    <div className="mb-3">
+                      <label className="form-label">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        className="form-control"
+                        placeholder="worker@example.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {/* Password */}
+                    <div className="mb-4">
+                      <label className="form-label">Password</label>
+                      <input
+                        type="password"
+                        name="password"
+                        className="form-control"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      className="btn-veriwork-primary w-100 py-3 mb-3 fw-bold"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                          Logging In...
+                        </>
+                      ) : (
+                        <>
+                          <span>Login</span>
+                          <FaArrowRight size={12} className="ms-2" />
+                        </>
+                      )}
+                    </button>
+
+                  </form>
+
+                  {/* Switch Links */}
+                  <div className="pt-3 border-top border-slate-200 small text-center text-md-start">
+                    <span className="text-muted">Don't have an account? </span>
+                    <Link to="/register-worker" className="text-dark fw-bold">
+                      Create worker profile
+                    </Link>
+                    <div className="mt-2">
+                      <span className="text-muted">Are you an employer? </span>
+                      <Link to="/employer-login" className="text-primary-dark fw-bold">
+                        Employer Login →
+                      </Link>
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="btn-web3-cyan w-100 py-3 mb-3 fw-bold"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      Authenticating Identity...
-                    </>
-                  ) : (
-                    <>
-                      <span>Enter Worker Portal</span>
-                      <FaArrowRight className="ms-2 small opacity-75" />
-                    </>
-                  )}
-                </button>
-
-              </form>
-
-              {/* Footer Switch */}
-              <div className="text-center pt-3 border-top border-white border-opacity-10 small">
-                <span className="text-muted">New domestic worker? </span>
-                <Link to="/register-worker" className="text-cyan fw-semibold">
-                  Register Digital ID
-                </Link>
-                <div className="mt-2">
-                  <span className="text-muted">Are you an employer? </span>
-                  <Link to="/employer-login" className="text-purple fw-semibold">
-                    Employer Login →
-                  </Link>
-                </div>
               </div>
-
             </div>
-
           </div>
+
         </div>
       </div>
 
       <style>{`
-        .vw-auth-container {
+        .vw-auth-split-wrapper {
           min-height: 80vh;
           display: flex;
           align-items: center;
         }
 
-        .vw-auth-badge {
-          width: 54px;
-          height: 54px;
-          border-radius: 14px;
-          background: rgba(6, 182, 212, 0.15);
-          border: 1px solid rgba(6, 182, 212, 0.4);
-          color: #06b6d4;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+        .vw-auth-sidebar {
+          background-color: var(--color-primary-dark);
+          position: relative;
         }
       `}</style>
     </div>

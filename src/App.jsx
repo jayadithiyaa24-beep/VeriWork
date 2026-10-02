@@ -22,6 +22,7 @@ import EmployerDashboard from "./pages/EmployerDashboard";
 import GetStarted from "./pages/GetStarted";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import AdminDashboard from "./pages/AdminDashboard";
+import NotFound from "./pages/NotFound";
 
 function App() {
   useEffect(() => {
@@ -167,28 +168,7 @@ function App() {
 
         <Route
           path="*"
-          element={
-            <div
-              className="container d-flex flex-column justify-content-center align-items-center text-center"
-              style={{
-                minHeight: "70vh",
-              }}
-            >
-
-              <h1 className="display-1 fw-bold text-primary">
-                404
-              </h1>
-
-              <h3>
-                Page Not Found
-              </h3>
-
-              <p className="text-muted">
-                The page you are looking for does not exist.
-              </p>
-
-            </div>
-          }
+          element={<NotFound />}
         />
 
       </Routes>

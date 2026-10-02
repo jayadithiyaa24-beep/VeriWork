@@ -746,26 +746,28 @@ function EmployerDashboard() {
         {/* ================================= */}
 
         <div
-          className="card border-0 shadow-sm mb-4"
+          className="veriwork-card-dark p-4 p-md-5 mb-4 position-relative overflow-hidden"
           style={{
-            background:
-              "linear-gradient(90deg,#16a34a,#059669)",
-            color: "white",
+            borderRadius: "24px",
           }}
         >
-          <div className="card-body p-4">
-
-            <h3>
-              Welcome,{" "}
-              {employer?.employerName ||
-                "Employer"} 👋
-            </h3>
-
-            <p className="mb-0">
-              Manage your employees and employment
-              records.
-            </p>
-
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <span className="veriwork-pill-badge mb-2 bg-white text-dark border-0">
+                EMPLOYER & ISSUER PORTAL
+              </span>
+              <h2 className="fw-bold text-white mb-1" style={{ fontFamily: "var(--font-serif)" }}>
+                Welcome, {employer?.employerName || "Employer"} 👋
+              </h2>
+              <p className="text-white-50 mb-0">
+                Manage domestic workforce contracts, authorize wallet signers, and anchor certificates to Ethereum.
+              </p>
+            </div>
+            <div className="d-none d-md-block text-end">
+              <span className="veriwork-pill-white">
+                ● AUTHORIZED ISSUER
+              </span>
+            </div>
           </div>
         </div>
 
