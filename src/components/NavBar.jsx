@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaShieldAlt, FaBars, FaTimes, FaSignOutAlt, FaSearch, FaCogs } from "react-icons/fa";
+import { FaBars, FaTimes, FaSignOutAlt, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 function Navbar() {
@@ -48,7 +48,6 @@ function Navbar() {
   const isHowItWorksActive = location.pathname === "/" && location.hash === "#how-it-works";
   const isFeaturesActive = location.pathname === "/" && location.hash === "#features";
   const isAboutActive = location.pathname === "/about";
-  const isVerifyActive = location.pathname === "/verify-certificate";
 
   // =================================
   // LOGOUT
@@ -80,48 +79,45 @@ function Navbar() {
   };
 
   return (
-    <nav className="vw-navbar sticky-top">
+    <nav className="vw-mockup-navbar sticky-top">
       <div className="container py-2">
         <div className="d-flex align-items-center justify-content-between">
           
-          {/* Logo on Left */}
+          {/* Logo on Left: 🌾 VeriWork */}
           <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
-            <div className="vw-logo-mark">
-              <FaShieldAlt size={16} />
-            </div>
-            <div className="d-flex flex-column">
-              <span className="vw-logo-title">VeriWork</span>
-              <span className="vw-logo-tagline d-none d-sm-inline">Trusted Work. Verified Identity.</span>
-            </div>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2C14 2 13 8 7 10C13 12 14 18 14 18C14 18 15 12 21 10C15 8 14 2 14 2Z" fill="#354A36" />
+              <path d="M7 16C7 16 10 18 10 22C10 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
+              <path d="M21 16C21 16 18 18 18 22C18 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
+              <path d="M14 18V26" stroke="#354A36" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span className="vw-mockup-logo-text">VeriWork</span>
           </Link>
 
           {/* Desktop Center Navigation Links */}
-          <div className="d-none d-lg-flex align-items-center gap-1 vw-nav-center">
-            <Link className={`vw-nav-link ${isHomeActive ? "active" : ""}`} to="/">
+          <div className="d-none d-md-flex align-items-center gap-4 vw-mockup-nav-links">
+            <Link className={`vw-mockup-link ${isHomeActive ? "active" : ""}`} to="/">
               Home
             </Link>
-            <Link className={`vw-nav-link ${isHowItWorksActive ? "active" : ""}`} to="/#how-it-works">
+            <Link className={`vw-mockup-link ${isHowItWorksActive ? "active" : ""}`} to="/#how-it-works">
               How It Works
             </Link>
-            <Link className={`vw-nav-link ${isFeaturesActive ? "active" : ""}`} to="/#features">
+            <Link className={`vw-mockup-link ${isFeaturesActive ? "active" : ""}`} to="/#features">
               Features
             </Link>
-            <Link className={`vw-nav-link ${isAboutActive ? "active" : ""}`} to="/about">
+            <Link className={`vw-mockup-link ${isAboutActive ? "active" : ""}`} to="/about">
               About
-            </Link>
-            <Link className={`vw-nav-link ${isVerifyActive ? "active" : ""}`} to="/verify-certificate">
-              Verify ID
             </Link>
           </div>
 
           {/* Right Action CTAs */}
-          <div className="d-none d-lg-flex align-items-center gap-2">
+          <div className="d-none d-md-flex align-items-center gap-3">
             {!userType && (
               <>
-                <Link to="/login" className="btn-veriwork-secondary py-2 px-3 text-sm">
+                <Link to="/login" className="btn-mockup-outline py-2 px-4">
                   Login
                 </Link>
-                <Link to="/get-started" className="btn-veriwork-primary py-2 px-4 text-sm">
+                <Link to="/get-started" className="btn-mockup-ochre py-2 px-4">
                   Get Started
                 </Link>
               </>
@@ -129,29 +125,29 @@ function Navbar() {
 
             {userType === "worker" && (
               <>
-                <Link to="/worker-dashboard" className="btn-veriwork-primary py-2 px-3 text-sm">
+                <Link to="/worker-dashboard" className="btn-mockup-forest py-2 px-3 text-sm">
                   👷 Worker Dashboard
                 </Link>
-                <button className="btn-veriwork-secondary py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
-                  <FaSignOutAlt className="me-1" /> Logout
+                <button className="btn-mockup-outline py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
+                  <FaSignOutAlt />
                 </button>
               </>
             )}
 
             {userType === "employer" && (
               <>
-                <Link to="/employer-dashboard" className="btn-veriwork-primary py-2 px-3 text-sm">
+                <Link to="/employer-dashboard" className="btn-mockup-forest py-2 px-3 text-sm">
                   🏢 Employer Dashboard
                 </Link>
-                <button className="btn-veriwork-secondary py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
-                  <FaSignOutAlt className="me-1" /> Logout
+                <button className="btn-mockup-outline py-2 px-3 text-danger text-sm" onClick={handleLogout} title="Logout">
+                  <FaSignOutAlt />
                 </button>
               </>
             )}
           </div>
 
-          {/* Mobile Hamburger Toggle Button */}
-          <div className="d-lg-none">
+          {/* Mobile Hamburger Toggle */}
+          <div className="d-md-none">
             <button
               className="btn btn-link text-dark p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -165,7 +161,7 @@ function Navbar() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="d-lg-none mt-3 pt-3 border-top border-secondary border-opacity-10 vw-mobile-menu">
+          <div className="d-md-none mt-3 pt-3 border-top border-secondary border-opacity-10">
             <div className="d-flex flex-column gap-2">
               <Link className="vw-mobile-link" to="/" onClick={() => setMobileMenuOpen(false)}>
                 Home
@@ -182,17 +178,14 @@ function Navbar() {
               <Link className="vw-mobile-link" to="/verify-certificate" onClick={() => setMobileMenuOpen(false)}>
                 Verify Certificate
               </Link>
-              <Link className="vw-mobile-link" to="/admin" onClick={() => setMobileMenuOpen(false)}>
-                Governance
-              </Link>
 
               <div className="d-flex flex-column gap-2 pt-3 mt-2 border-top border-secondary border-opacity-10">
                 {!userType ? (
                   <>
-                    <Link to="/login" className="btn-veriwork-secondary w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/login" className="btn-mockup-outline w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
                       Login
                     </Link>
-                    <Link to="/get-started" className="btn-veriwork-primary w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/get-started" className="btn-mockup-ochre w-100 py-2 text-center" onClick={() => setMobileMenuOpen(false)}>
                       Get Started
                     </Link>
                   </>
@@ -200,12 +193,12 @@ function Navbar() {
                   <>
                     <Link
                       to={userType === "worker" ? "/worker-dashboard" : "/employer-dashboard"}
-                      className="btn-veriwork-primary w-100 py-2 text-center"
+                      className="btn-mockup-forest w-100 py-2 text-center"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Dashboard
                     </Link>
-                    <button className="btn-veriwork-secondary w-100 py-2 text-danger" onClick={handleLogout}>
+                    <button className="btn-mockup-outline w-100 py-2 text-danger" onClick={handleLogout}>
                       Logout
                     </button>
                   </>
@@ -218,68 +211,33 @@ function Navbar() {
       </div>
 
       <style>{`
-        .vw-navbar {
-          background-color: rgba(239, 236, 230, 0.95);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+        .vw-mockup-navbar {
+          background-color: var(--color-bg);
           border-bottom: 1px solid var(--color-border);
           z-index: 1030;
           transition: all 0.25s ease;
         }
 
-        .vw-logo-mark {
-          width: 36px;
-          height: 36px;
-          border-radius: var(--radius-sm);
-          background-color: var(--color-primary);
-          color: #FFFFFF;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: var(--shadow-sm);
-        }
-
-        .vw-logo-title {
+        .vw-mockup-logo-text {
           font-family: var(--font-serif);
           font-weight: 700;
-          font-size: 1.35rem;
+          font-size: 1.45rem;
           color: var(--color-text);
-          line-height: 1.1;
+          letter-spacing: -0.02em;
         }
 
-        .vw-logo-tagline {
-          font-size: 0.72rem;
-          color: var(--color-text-muted);
-          font-weight: 500;
-          letter-spacing: -0.01em;
-        }
-
-        .vw-nav-center {
-          background-color: rgba(255, 255, 255, 0.6);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-pill);
-          padding: 3px 6px;
-        }
-
-        .vw-nav-link {
+        .vw-mockup-link {
           color: var(--color-text-muted);
           font-weight: 600;
-          font-size: 0.92rem;
-          padding: 7px 18px;
-          border-radius: var(--radius-pill);
+          font-size: 0.95rem;
           text-decoration: none;
-          transition: all 0.2s ease;
+          transition: color 0.2s ease;
+          padding: 4px 0;
         }
 
-        .vw-nav-link:hover {
+        .vw-mockup-link:hover, .vw-mockup-link.active {
           color: var(--color-text);
-          background-color: rgba(255, 255, 255, 0.9);
-        }
-
-        .vw-nav-link.active {
-          color: #FFFFFF;
-          background-color: var(--color-primary-dark);
-          box-shadow: 0 2px 8px rgba(55, 71, 56, 0.2);
+          border-bottom: 2px solid var(--color-forest);
         }
 
         .vw-mobile-link {
@@ -296,7 +254,7 @@ function Navbar() {
         }
 
         .text-sm {
-          font-size: 0.9rem;
+          font-size: 0.88rem;
         }
       `}</style>
     </nav>

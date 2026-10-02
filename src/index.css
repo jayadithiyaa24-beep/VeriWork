@@ -1,53 +1,50 @@
 /* =========================================================================
-   VERIWORK — WARM EARTHY / TRUSTED FINTECH DESIGN SYSTEM
-   Palette:
-   - Background: #EFECE6 (Warm off-white / beige)
-   - Primary text: #2B2625 (Dark warm charcoal)
-   - Primary green: #7A8B7B (Muted sage green)
-   - Dark green: #374738 / #243025 (Deep forest sage)
-   - Accent gold: #D4A359 (Warm metallic gold)
-   - Surface / White: #FFFFFF
+   VERIWORK — PRECISE WARM EARTHY DESIGN SYSTEM
+   Pixel-matched to user UI mockup:
+   - Canvas: #EFECE6 (Warm linen beige)
+   - Primary text: #2B2625 (Warm dark charcoal)
+   - Deep Forest Green: #354A36 (Primary CTA & accents)
+   - Warm Ochre / Mustard Gold: #C98A41 (Secondary CTA & highlights)
+   - Soft Sage Tint: #E3EAE3 (Icon containers & pills)
+   - Surface / Cards: #FFFFFF & #F8F6F2
+   - Deep Footer Green: #1A281D
    ========================================================================= */
 
 :root {
   /* Colors */
   --color-bg: #EFECE6;
-  --color-bg-subtle: #E7E3DC;
+  --color-bg-alt: #F4F1EB;
   --color-surface: #FFFFFF;
-  --color-surface-warm: #FAF8F5;
-  --color-surface-tint: #F3EFE9;
+  --color-surface-cream: #F8F6F2;
+  --color-surface-tint: #ECE7DE;
   
   --color-text: #2B2625;
   --color-text-muted: #6B6560;
   --color-text-light: #8E8882;
   
-  --color-primary: #7A8B7B;
-  --color-primary-hover: #657666;
-  --color-primary-light: rgba(122, 139, 123, 0.15);
+  --color-forest: #354A36;
+  --color-forest-hover: #293B2A;
+  --color-forest-light: #E4ECE4;
+  --color-forest-dark: #1A281D;
   
-  --color-primary-dark: #374738;
-  --color-primary-darker: #243025;
+  --color-ochre: #C98A41;
+  --color-ochre-hover: #B77A35;
+  --color-ochre-light: #FBF2E6;
   
-  --color-accent: #D4A359;
-  --color-accent-hover: #C39247;
-  --color-accent-light: rgba(212, 163, 89, 0.16);
-  --color-accent-soft: #F9F3EA;
-  
-  --color-border: #DCD7CE;
-  --color-border-subtle: #E8E4DB;
+  --color-border: #DDD8CE;
+  --color-border-subtle: #E8E4DC;
   
   /* Radiuses */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
   --radius-pill: 9999px;
   
   /* Shadows */
-  --shadow-sm: 0 4px 12px rgba(43, 38, 37, 0.05);
-  --shadow-md: 0 10px 30px rgba(43, 38, 37, 0.07);
-  --shadow-lg: 0 20px 45px rgba(43, 38, 37, 0.1);
+  --shadow-sm: 0 4px 14px rgba(43, 38, 37, 0.05);
   --shadow-card: 0 8px 24px rgba(43, 38, 37, 0.06);
+  --shadow-md: 0 12px 32px rgba(43, 38, 37, 0.08);
+  --shadow-lg: 0 20px 48px rgba(43, 38, 37, 0.12);
 
   /* Typography */
   --font-serif: 'Fraunces', Georgia, serif;
@@ -68,7 +65,7 @@ html, body {
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 15.5px;
-  line-height: 1.65;
+  line-height: 1.6;
   margin: 0;
   padding: 0;
   min-height: 100vh;
@@ -111,59 +108,86 @@ p, span, li, small {
 }
 
 a {
-  color: var(--color-primary-dark);
+  color: var(--color-forest);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 a:hover {
-  color: var(--color-accent);
+  color: var(--color-ochre);
   text-decoration: none;
 }
 
 /* =========================================================================
-   REUSABLE BUTTON SYSTEM
+   EXACT BUTTONS FROM MOCKUP
    ========================================================================= */
 
-/* Primary Button: Sage Green */
-.btn-veriwork-primary {
-  background-color: var(--color-primary);
+/* Forest Green Button */
+.btn-mockup-forest {
+  background-color: var(--color-forest);
   color: #FFFFFF !important;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-forest);
   border-radius: var(--radius-pill);
-  padding: 11px 26px;
+  padding: 12px 28px;
   font-weight: 600;
   font-family: var(--font-sans);
   font-size: 0.95rem;
-  letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 14px rgba(122, 139, 123, 0.25);
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(53, 74, 54, 0.25);
   cursor: pointer;
   text-decoration: none !important;
 }
 
-.btn-veriwork-primary:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+.btn-mockup-forest:hover {
+  background-color: var(--color-forest-hover);
+  border-color: var(--color-forest-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(122, 139, 123, 0.35);
+  box-shadow: 0 8px 20px rgba(53, 74, 54, 0.35);
   color: #FFFFFF !important;
 }
 
-/* Secondary Button: Outlined Cream/Charcoal */
-.btn-veriwork-secondary {
-  background-color: transparent;
+/* Ochre / Gold Button */
+.btn-mockup-ochre {
+  background-color: var(--color-ochre);
+  color: #FFFFFF !important;
+  border: 1px solid var(--color-ochre);
+  border-radius: var(--radius-pill);
+  padding: 12px 28px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(201, 138, 65, 0.25);
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.btn-mockup-ochre:hover {
+  background-color: var(--color-ochre-hover);
+  border-color: var(--color-ochre-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(201, 138, 65, 0.35);
+  color: #FFFFFF !important;
+}
+
+/* Outline Pill Button */
+.btn-mockup-outline {
+  background-color: #FFFFFF;
   color: var(--color-text) !important;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-pill);
   padding: 10px 24px;
   font-weight: 600;
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -173,181 +197,93 @@ a:hover {
   text-decoration: none !important;
 }
 
-.btn-veriwork-secondary:hover {
-  background-color: #FFFFFF;
+.btn-mockup-outline:hover {
   border-color: var(--color-text);
   transform: translateY(-2px);
-  color: var(--color-text) !important;
   box-shadow: var(--shadow-sm);
-}
-
-/* Accent Button: Warm Gold */
-.btn-veriwork-accent {
-  background-color: var(--color-accent);
-  color: #FFFFFF !important;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-pill);
-  padding: 11px 26px;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(212, 163, 89, 0.3);
-  cursor: pointer;
-  text-decoration: none !important;
-}
-
-.btn-veriwork-accent:hover {
-  background-color: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(212, 163, 89, 0.45);
-  color: #FFFFFF !important;
-}
-
-/* Dark Green Button */
-.btn-veriwork-dark {
-  background-color: var(--color-primary-dark);
-  color: #FFFFFF !important;
-  border: 1px solid var(--color-primary-dark);
-  border-radius: var(--radius-pill);
-  padding: 11px 26px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.25s ease;
-  cursor: pointer;
-  text-decoration: none !important;
-}
-
-.btn-veriwork-dark:hover {
-  background-color: var(--color-primary-darker);
-  transform: translateY(-2px);
-  color: #FFFFFF !important;
-  box-shadow: 0 8px 20px rgba(36, 48, 37, 0.25);
+  color: var(--color-text) !important;
 }
 
 /* =========================================================================
-   WARM CARD ARCHITECTURE
+   MOCKUP CARDS & BADGES
    ========================================================================= */
 
-.veriwork-card {
+.mockup-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
 }
 
-.veriwork-card-interactive:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-border);
-}
-
-.veriwork-card-tint {
-  background-color: var(--color-surface-warm);
+.mockup-card-cream {
+  background-color: var(--color-surface-cream);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.veriwork-card-dark {
-  background-color: var(--color-primary-dark);
-  color: #FFFFFF !important;
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-lg);
+.mockup-card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
-.veriwork-card-dark h1,
-.veriwork-card-dark h2,
-.veriwork-card-dark h3,
-.veriwork-card-dark h4 {
-  color: #FFFFFF !important;
-}
-
-.veriwork-card-dark p,
-.veriwork-card-dark span {
-  color: #E2DDD5;
-}
-
-/* =========================================================================
-   TRUST BADGES & PILLS
-   ========================================================================= */
-
-.veriwork-pill-badge {
+.mockup-tag-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: var(--color-accent-soft);
-  color: #8C6226;
-  border: 1px solid rgba(212, 163, 89, 0.35);
+  background-color: #F2EFE8;
+  color: #5C554D;
+  border: 1px solid #DCD6CB;
   border-radius: var(--radius-pill);
-  padding: 5px 14px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  padding: 6px 18px;
+  font-size: 0.82rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
-.veriwork-pill-sage {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--color-primary-light);
-  color: var(--color-primary-dark);
-  border: 1px solid rgba(122, 139, 123, 0.3);
-  border-radius: var(--radius-pill);
-  padding: 5px 14px;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.veriwork-pill-white {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.mockup-trust-badge {
   background-color: #FFFFFF;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 5px 14px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  padding: 10px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
 }
 
-.icon-box-sage {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background-color: var(--color-primary-light);
-  color: var(--color-primary-dark);
+.mockup-trust-badge:hover {
+  transform: translateY(-2px);
+}
+
+.mockup-icon-circle-sage {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-forest-light);
+  color: var(--color-forest);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.icon-box-gold {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background-color: var(--color-accent-light);
-  color: var(--color-accent);
+.mockup-icon-circle-ochre {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-ochre-light);
+  color: var(--color-ochre);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 /* =========================================================================
-   FORMS & INPUTS (WARM CLEAN SAAS)
+   FORMS & INPUTS
    ========================================================================= */
 
 .form-control, .form-select {
@@ -362,8 +298,8 @@ a:hover {
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(122, 139, 123, 0.2) !important;
+  border-color: var(--color-forest) !important;
+  box-shadow: 0 0 0 3px rgba(53, 74, 54, 0.18) !important;
   color: var(--color-text) !important;
 }
 
@@ -374,19 +310,18 @@ a:hover {
 .form-label {
   color: var(--color-text) !important;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   margin-bottom: 6px;
 }
 
-/* Readonly fields in dashboards */
 .form-control.bg-light, .bg-light {
-  background-color: var(--color-surface-tint) !important;
+  background-color: var(--color-surface-cream) !important;
   border: 1px solid var(--color-border) !important;
   color: var(--color-text) !important;
 }
 
 /* =========================================================================
-   TABLES & LISTS
+   TABLES & MODALS
    ========================================================================= */
 
 .card {
@@ -397,22 +332,18 @@ a:hover {
   color: var(--color-text) !important;
 }
 
-.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
-  color: var(--color-text) !important;
-}
-
 .table {
   color: var(--color-text) !important;
   --bs-table-bg: transparent !important;
   --bs-table-color: var(--color-text) !important;
-  --bs-table-striped-bg: #F7F5F0 !important;
-  --bs-table-hover-bg: #EDE9E1 !important;
+  --bs-table-striped-bg: #F8F6F2 !important;
+  --bs-table-hover-bg: #EDE8DE !important;
   border-color: var(--color-border-subtle) !important;
 }
 
 .table th {
-  background-color: #F7F5F0 !important;
-  color: var(--color-primary-dark) !important;
+  background-color: #F8F6F2 !important;
+  color: var(--color-forest) !important;
   font-weight: 700 !important;
   font-size: 0.82rem !important;
   text-transform: uppercase !important;
@@ -428,7 +359,6 @@ a:hover {
   vertical-align: middle !important;
 }
 
-/* Modal */
 .modal-content {
   background-color: var(--color-surface) !important;
   border: 1px solid var(--color-border) !important;
@@ -447,36 +377,7 @@ a:hover {
   font-weight: 700;
 }
 
-.btn-close {
-  filter: none !important;
-}
-
-/* =========================================================================
-   SUBTLE MICRO-ANIMATIONS (200ms - 400ms)
-   ========================================================================= */
-
-@keyframes subtleFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-.animate-subtle-float {
-  animation: subtleFloat 4s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Scrollbar */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -492,5 +393,5 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
+  background: var(--color-forest);
 }

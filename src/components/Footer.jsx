@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { FaShieldAlt } from "react-icons/fa";
+import { FaLinkedinIn, FaTwitter, FaInstagram } from "react-icons/fa";
 
 function Footer() {
   return (
-    <footer className="vw-footer mt-auto py-5 text-start">
+    <footer className="vw-mockup-footer mt-auto py-5 text-start">
       <div className="container">
         
         <div className="row g-4 mb-5">
@@ -11,80 +11,79 @@ function Footer() {
           {/* Brand Info */}
           <div className="col-lg-5">
             <div className="d-flex align-items-center gap-2 mb-3">
-              <div className="vw-footer-logo-mark">
-                <FaShieldAlt size={16} />
-              </div>
-              <span className="vw-footer-brand-name">VeriWork</span>
+              <svg width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2C14 2 13 8 7 10C13 12 14 18 14 18C14 18 15 12 21 10C15 8 14 2 14 2Z" fill="#7A8B7B" />
+                <path d="M7 16C7 16 10 18 10 22C10 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
+                <path d="M21 16C21 16 18 18 18 22C18 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
+                <path d="M14 18V26" stroke="#7A8B7B" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span className="vw-mockup-footer-logo">VeriWork</span>
             </div>
-            <p className="vw-footer-desc mb-3 pe-lg-4">
-              Verifiable work identity for informal workers. Empowering domestic professionals with tamper-proof records, portable credentials, and financial inclusion.
+            
+            <p className="vw-mockup-footer-desc mb-4 pe-lg-4">
+              Verifiable work identity for informal domestic workers.
             </p>
-            <div className="vw-footer-badge">
-              <span>Zero-Knowledge Aadhaar SHA-256 Protected</span>
+
+            {/* Social Icons */}
+            <div className="d-flex align-items-center gap-3">
+              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="LinkedIn">
+                <FaLinkedinIn size={14} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="Twitter">
+                <FaTwitter size={14} />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="Instagram">
+                <FaInstagram size={14} />
+              </a>
             </div>
           </div>
 
           {/* Product Links */}
-          <div className="col-6 col-lg-2">
-            <h6 className="vw-footer-col-title mb-3">Product</h6>
+          <div className="col-4 col-lg-2">
+            <h6 className="vw-footer-col-header mb-3">Product</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
               <li>
-                <Link to="/" className="vw-footer-link">Home</Link>
+                <Link to="/" className="vw-footer-col-link">Home</Link>
               </li>
               <li>
-                <Link to="/#features" className="vw-footer-link">Features</Link>
+                <Link to="/#features" className="vw-footer-col-link">Features</Link>
               </li>
               <li>
-                <Link to="/#how-it-works" className="vw-footer-link">How It Works</Link>
-              </li>
-              <li>
-                <Link to="/verify-certificate" className="vw-footer-link">Verify Credential</Link>
+                <Link to="/#how-it-works" className="vw-footer-col-link">How It Works</Link>
               </li>
             </ul>
           </div>
 
           {/* Company Links */}
-          <div className="col-6 col-lg-2">
-            <h6 className="vw-footer-col-title mb-3">Company</h6>
+          <div className="col-4 col-lg-2">
+            <h6 className="vw-footer-col-header mb-3">Company</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
               <li>
-                <Link to="/about" className="vw-footer-link">About</Link>
+                <Link to="/about" className="vw-footer-col-link">About</Link>
               </li>
               <li>
-                <Link to="/get-started" className="vw-footer-link">Get Started</Link>
-              </li>
-              <li>
-                <Link to="/login" className="vw-footer-link">Worker Portal</Link>
-              </li>
-              <li>
-                <Link to="/employer-login" className="vw-footer-link">Employer Portal</Link>
+                <Link to="/about" className="vw-footer-col-link">Contact</Link>
               </li>
             </ul>
           </div>
 
-          {/* Legal / Protocol Links */}
-          <div className="col-12 col-lg-3">
-            <h6 className="vw-footer-col-title mb-3">Legal & Governance</h6>
+          {/* Legal Links */}
+          <div className="col-4 col-lg-3">
+            <h6 className="vw-footer-col-header mb-3">Legal</h6>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
               <li>
-                <Link to="/about" className="vw-footer-link">Privacy Policy</Link>
+                <Link to="/about" className="vw-footer-col-link">Privacy Policy</Link>
               </li>
               <li>
-                <Link to="/about" className="vw-footer-link">Terms of Service</Link>
-              </li>
-              <li>
-                <Link to="/admin" className="vw-footer-link">Admin & Governance</Link>
+                <Link to="/about" className="vw-footer-col-link">Terms of Service</Link>
               </li>
             </ul>
-            <div className="mt-3 font-monospace small" style={{ color: "#9EAA9F", fontSize: "0.75rem" }}>
-              Smart Contract: 0x9fE4...a6e0
-            </div>
           </div>
 
         </div>
 
-        {/* Bottom Copyright Strip */}
-        <div className="pt-4 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2 small" style={{ color: "#9EAA9F" }}>
+        {/* Bottom Copyright */}
+        <div className="pt-4 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
           <div>
             © 2026 VeriWork. All rights reserved.
           </div>
@@ -96,60 +95,54 @@ function Footer() {
       </div>
 
       <style>{`
-        .vw-footer {
-          background-color: var(--color-primary-darker);
+        .vw-mockup-footer {
+          background-color: var(--color-forest-dark, #1A281D);
           color: #E2DDD5;
         }
 
-        .vw-footer-logo-mark {
+        .vw-mockup-footer-logo {
+          font-family: var(--font-serif);
+          font-weight: 700;
+          font-size: 1.5rem;
+          color: #FFFFFF;
+        }
+
+        .vw-mockup-footer-desc {
+          color: #9EAA9F;
+          font-size: 0.95rem;
+          max-width: 320px;
+        }
+
+        .vw-social-icon {
           width: 32px;
           height: 32px;
-          border-radius: var(--radius-sm);
-          background-color: var(--color-primary);
-          color: #FFFFFF;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.08);
+          color: #E2DDD5;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        .vw-footer-brand-name {
-          font-family: var(--font-serif);
-          font-weight: 700;
-          font-size: 1.4rem;
+        .vw-social-icon:hover {
+          background-color: var(--color-ochre);
           color: #FFFFFF;
         }
 
-        .vw-footer-desc {
-          color: #A8B5A9;
-          font-size: 0.92rem;
-          line-height: 1.6;
-        }
-
-        .vw-footer-badge {
-          display: inline-block;
-          background-color: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: var(--radius-pill);
-          padding: 4px 12px;
-          font-size: 0.75rem;
-          color: #D4A359;
-        }
-
-        .vw-footer-col-title {
-          font-size: 0.85rem;
+        .vw-footer-col-header {
+          font-size: 0.95rem;
           font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
           color: #FFFFFF;
         }
 
-        .vw-footer-link {
-          color: #A8B5A9;
+        .vw-footer-col-link {
+          color: #9EAA9F;
           text-decoration: none;
           transition: color 0.2s ease;
         }
 
-        .vw-footer-link:hover {
+        .vw-footer-col-link:hover {
           color: #FFFFFF;
         }
       `}</style>

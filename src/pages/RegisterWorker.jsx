@@ -2,21 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerWorker } from "../services/workerService";
 import { toast } from "react-toastify";
-
-import {
-  FaUser,
-  FaPhone,
-  FaEnvelope,
-  FaIdCard,
-  FaMapMarkerAlt,
-  FaTools,
-  FaBriefcase,
-  FaLock,
-  FaEye,
-  FaEyeSlash,
-  FaShieldAlt,
-  FaArrowRight,
-} from "react-icons/fa";
+import { FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
+import workerIllustration from "../assets/worker_illustration.jpg";
 
 function RegisterWorker() {
   const navigate = useNavigate();
@@ -61,83 +48,105 @@ function RegisterWorker() {
   };
 
   return (
-    <div className="vw-register-split-wrapper py-5">
+    <div className="vw-register-page-wrapper py-5">
       <div className="container py-3">
-        <div className="row g-0 justify-content-center">
-          
+        <div className="row justify-content-center">
           <div className="col-lg-11 col-xl-10">
-            <div className="veriwork-card overflow-hidden shadow-lg border-0">
-              <div className="row g-0">
+            
+            <div className="mockup-card overflow-hidden shadow-lg border-0">
+              <div className="row g-0 align-items-stretch">
                 
-                {/* Left Side: Branded Story Panel */}
-                <div className="col-lg-4 d-none d-lg-flex flex-column justify-content-between p-4 p-xl-5 vw-register-sidebar">
-                  <div>
-                    <span className="veriwork-pill-badge mb-3 bg-white text-dark border-0">
-                      DIGITAL WORK IDENTITY
-                    </span>
-                    <h2 className="display-6 fw-bold text-white mb-3" style={{ fontFamily: "var(--font-serif)" }}>
-                      Create Your Worker Profile
-                    </h2>
-                    <p className="text-white-50 small mb-0" style={{ lineHeight: "1.7" }}>
-                      Take ownership of your domestic work experience. Your employment history, wages, and ratings are cryptographically anchored.
-                    </p>
+                {/* Left Side: Illustration & Checklist */}
+                <div className="col-md-5 d-none d-md-flex flex-column justify-content-between p-4 p-lg-5 vw-register-art-panel text-start">
+                  
+                  {/* Worker Illustration */}
+                  <div className="text-center mb-4">
+                    <img
+                      src={workerIllustration}
+                      alt="Domestic Worker"
+                      className="img-fluid rounded-4 shadow-sm"
+                      style={{ maxHeight: "240px", objectFit: "cover" }}
+                    />
                   </div>
 
-                  <div className="p-3 rounded-3 bg-black bg-opacity-20 text-white-50 small border border-white border-opacity-10 mt-4">
-                    <div className="d-flex align-items-center gap-2 mb-1 text-white fw-semibold">
-                      <FaShieldAlt className="text-warning" size={13} />
-                      <span>Zero-Knowledge Aadhaar Protection</span>
+                  <div>
+                    <h4 className="fw-bold text-dark mb-3" style={{ fontFamily: "var(--font-serif)" }}>
+                      Build Your Trusted Identity
+                    </h4>
+
+                    <div className="d-flex flex-column gap-2 small">
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Get verified</span>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Find better opportunities</span>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Build your reputation</span>
+                      </div>
                     </div>
-                    <span>Your 12-digit UIDAI number is immediately salted & hashed with SHA-256 before storage.</span>
                   </div>
+
+                  <div className="mt-4 pt-3 border-top border-secondary border-opacity-10 text-muted small">
+                    Zero-Knowledge Aadhaar SHA-256 Protected
+                  </div>
+
                 </div>
 
-                {/* Right Side: Registration Form */}
-                <div className="col-lg-8 p-4 p-md-5 bg-white text-start">
+                {/* Right Side: Form Panel */}
+                <div className="col-md-7 p-4 p-lg-5 bg-white text-start">
                   
                   <div className="mb-4">
-                    <span className="veriwork-pill-sage mb-2">
-                      DOMESTIC WORKFORCE ONBOARDING
-                    </span>
-                    <h3 className="fw-bold text-dark mb-1">
-                      Register as a Verified Worker
-                    </h3>
+                    <h2 className="fw-bold text-dark mb-1" style={{ fontFamily: "var(--font-serif)" }}>
+                      Create Your Worker Profile
+                    </h2>
                     <p className="text-muted small">
-                      Please fill out your details accurately to generate your digital identity.
+                      Tell us about yourself and your skills
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit}>
-                    <div className="row g-3">
-                      
-                      {/* Full Name */}
-                      <div className="col-md-6">
-                        <label className="form-label">Full Name</label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          className="form-control"
-                          placeholder="e.g. Ramesh Kumar"
-                          value={formData.fullName}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
+                    
+                    {/* Full Name */}
+                    <div className="mb-3">
+                      <label className="form-label">Full Name</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        className="form-control"
+                        placeholder="Enter your full name"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
 
-                      {/* Phone */}
-                      <div className="col-md-6">
-                        <label className="form-label">Phone Number</label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          className="form-control"
-                          placeholder="10-digit Mobile Number"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
+                    {/* Phone Number */}
+                    <div className="mb-3">
+                      <label className="form-label">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        className="form-control"
+                        placeholder="Enter your phone number"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
 
+                    <div className="row g-2 mb-3">
                       {/* Email */}
                       <div className="col-md-6">
                         <label className="form-label">Email Address</label>
@@ -152,114 +161,110 @@ function RegisterWorker() {
                         />
                       </div>
 
-                      {/* Aadhaar */}
+                      {/* Aadhaar Number */}
                       <div className="col-md-6">
-                        <label className="form-label">Aadhaar Number (12 Digits)</label>
+                        <label className="form-label">Aadhaar Number</label>
                         <input
                           type="text"
                           name="aadhaar"
                           className="form-control"
-                          placeholder="12-digit UIDAI Number"
+                          placeholder="12-digit number"
                           maxLength={12}
                           value={formData.aadhaar}
                           onChange={handleChange}
                           required
                         />
                       </div>
+                    </div>
 
-                      {/* Skills */}
-                      <div className="col-md-6">
-                        <label className="form-label">Primary Skills</label>
+                    {/* Skills */}
+                    <div className="mb-3">
+                      <label className="form-label">Skills</label>
+                      <input
+                        type="text"
+                        name="skills"
+                        className="form-control"
+                        placeholder="e.g. Cooking, Cleaning, Babysitting"
+                        value={formData.skills}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {/* Experience */}
+                    <div className="mb-3">
+                      <label className="form-label">Experience</label>
+                      <input
+                        type="number"
+                        name="experience"
+                        className="form-control"
+                        placeholder="e.g. 2 years"
+                        min={0}
+                        value={formData.experience}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {/* Location */}
+                    <div className="mb-3">
+                      <label className="form-label">Location</label>
+                      <input
+                        type="text"
+                        name="address"
+                        className="form-control"
+                        placeholder="Enter your location"
+                        value={formData.address}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {/* Password */}
+                    <div className="mb-4">
+                      <label className="form-label">Password</label>
+                      <div className="position-relative">
                         <input
-                          type="text"
-                          name="skills"
-                          className="form-control"
-                          placeholder="e.g. Cooking, Housekeeping, Driving"
-                          value={formData.skills}
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          className="form-control pe-5"
+                          placeholder="Create a password"
+                          value={formData.password}
                           onChange={handleChange}
                           required
                         />
+                        <button
+                          type="button"
+                          className="btn position-absolute top-50 end-0 translate-middle-y text-muted border-0 me-2"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
                       </div>
-
-                      {/* Experience */}
-                      <div className="col-md-6">
-                        <label className="form-label">Experience (Years)</label>
-                        <input
-                          type="number"
-                          name="experience"
-                          className="form-control"
-                          placeholder="e.g. 5"
-                          min={0}
-                          value={formData.experience}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-
-                      {/* Location / Address */}
-                      <div className="col-12">
-                        <label className="form-label">Location / Residential Area</label>
-                        <input
-                          type="text"
-                          name="address"
-                          className="form-control"
-                          placeholder="City, State, Locality"
-                          value={formData.address}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-
-                      {/* Password */}
-                      <div className="col-12">
-                        <label className="form-label">Password</label>
-                        <div className="position-relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            className="form-control pe-5"
-                            placeholder="Create a strong password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="btn position-absolute top-50 end-0 translate-middle-y text-muted border-0 me-2"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? <FaEyeSlash /> : <FaEye />}
-                          </button>
-                        </div>
-                      </div>
-
                     </div>
 
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="btn-veriwork-primary w-100 py-3 mt-4 fw-bold"
+                      className="btn-mockup-forest w-100 py-3 fw-bold"
                       disabled={loading}
                     >
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                          Registering Profile...
+                          Creating Profile...
                         </>
                       ) : (
-                        <>
-                          <span>Create Worker Profile</span>
-                          <FaArrowRight size={12} className="ms-2" />
-                        </>
+                        "Create Profile"
                       )}
                     </button>
+
                   </form>
 
-                  {/* Switch Links */}
-                  <div className="text-center pt-4 mt-3 border-top border-slate-200 small">
-                    <span className="text-muted">Already have a worker profile? </span>
-                    <Link to="/login" className="text-dark fw-bold">
-                      Login here →
+                  <div className="text-center pt-3 small text-muted">
+                    Already have a profile?{" "}
+                    <Link to="/login" className="text-dark fw-bold text-decoration-underline">
+                      Login here
                     </Link>
                   </div>
 
@@ -267,19 +272,33 @@ function RegisterWorker() {
 
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
 
       <style>{`
-        .vw-register-split-wrapper {
+        .vw-register-page-wrapper {
           min-height: 85vh;
+          display: flex;
+          align-items: center;
         }
 
-        .vw-register-sidebar {
-          background-color: var(--color-primary-dark);
-          position: relative;
+        .vw-register-art-panel {
+          background-color: var(--color-surface-cream, #F8F6F2);
+          border-right: 1px solid var(--color-border);
+        }
+
+        .vw-check-circle-sm {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background-color: #2E7D32;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
       `}</style>
     </div>

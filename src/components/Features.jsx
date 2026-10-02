@@ -4,27 +4,27 @@ function Features() {
   const features = [
     {
       icon: <FaIdCard size={22} />,
-      iconClass: "icon-box-sage",
+      iconClass: "mockup-icon-circle-sage",
       title: "Digital Identity",
-      description: "Create a verifiable worker profile with skills, experience, and privacy-shielded credentials.",
+      description: "Create a verifiable work profile with skills and experience.",
     },
     {
       icon: <FaShieldAlt size={22} />,
-      iconClass: "icon-box-gold",
+      iconClass: "mockup-icon-circle-sage",
       title: "Secure Verification",
-      description: "Employer verification and trusted records secured through immutable blockchain technology.",
+      description: "Employer verification and trusted records on blockchain.",
     },
     {
       icon: <FaRupeeSign size={22} />,
-      iconClass: "icon-box-sage",
+      iconClass: "mockup-icon-circle-sage",
       title: "Payment Tracking",
-      description: "UPI payments and verified monthly salary history recorded transparently for financial inclusion.",
+      description: "UPI payments recorded securely with full transparency.",
     },
     {
       icon: <FaStar size={22} />,
-      iconClass: "icon-box-gold",
+      iconClass: "mockup-icon-circle-ochre",
       title: "Ratings & Reviews",
-      description: "Build lasting credibility through genuine, anti-tamper employer evaluations and merit scores.",
+      description: "Build trust through genuine employer ratings.",
     },
   ];
 
@@ -33,22 +33,19 @@ function Features() {
       
       {/* Section Header */}
       <div className="text-center max-w-700 mx-auto mb-5">
-        <span className="veriwork-pill-sage mb-3">
-          WHY VERIWORK?
-        </span>
-        <h2 className="display-6 fw-bold mb-2">
-          Simple solutions for real problems.
+        <h2 className="display-6 fw-bold text-dark mb-2" style={{ fontFamily: "var(--font-serif)" }}>
+          Why VeriWork?
         </h2>
-        <p className="text-muted lead" style={{ fontSize: "1.05rem" }}>
-          Informal workers face lack of identity and portable proof. VeriWork solves this with verifiable records.
+        <p className="text-muted" style={{ fontSize: "1.05rem" }}>
+          Simple solutions for real problems
         </p>
       </div>
 
-      {/* Feature Cards Grid */}
+      {/* 4 Mockup Cards */}
       <div className="row g-4">
         {features.map((feature, index) => (
           <div className="col-md-6 col-lg-3" key={index}>
-            <div className="veriwork-card veriwork-card-interactive p-4 h-100 d-flex flex-column text-start">
+            <div className="mockup-card mockup-card-interactive p-4 h-100 d-flex flex-column text-start">
               
               <div className="mb-4">
                 <div className={feature.iconClass}>

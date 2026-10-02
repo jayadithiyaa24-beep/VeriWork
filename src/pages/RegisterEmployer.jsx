@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { FaBuilding, FaPhone, FaEnvelope, FaLock, FaArrowRight, FaShieldAlt } from "react-icons/fa";
 import { registerEmployer } from "../services/employerService";
+import { toast } from "react-toastify";
+import { FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
+import employerIllustration from "../assets/employer_illustration.jpg";
 
 function RegisterEmployer() {
   const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     employerName: "",
@@ -13,8 +17,6 @@ function RegisterEmployer() {
     email: "",
     password: "",
   });
-
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,83 +45,105 @@ function RegisterEmployer() {
   };
 
   return (
-    <div className="vw-register-split-wrapper py-5">
+    <div className="vw-register-page-wrapper py-5">
       <div className="container py-3">
-        <div className="row g-0 justify-content-center">
-          
-          <div className="col-lg-10 col-xl-9">
-            <div className="veriwork-card overflow-hidden shadow-lg border-0">
-              <div className="row g-0">
+        <div className="row justify-content-center">
+          <div className="col-lg-11 col-xl-10">
+            
+            <div className="mockup-card overflow-hidden shadow-lg border-0">
+              <div className="row g-0 align-items-stretch">
                 
-                {/* Left Side: Branded Story Panel */}
-                <div className="col-md-5 d-none d-md-flex flex-column justify-content-between p-4 p-lg-5 vw-register-sidebar-employer">
-                  <div>
-                    <span className="veriwork-pill-badge mb-3 bg-white text-dark border-0">
-                      EMPLOYER ONBOARDING
-                    </span>
-                    <h2 className="display-6 fw-bold text-white mb-3" style={{ fontFamily: "var(--font-serif)" }}>
-                      Create Employer Account
-                    </h2>
-                    <p className="text-white-50 small mb-0" style={{ lineHeight: "1.7" }}>
-                      Hire with trust. Build reliable work relationships. Register domestic contracts, track wages, and sign verified work credentials.
-                    </p>
+                {/* Left Side: Illustration & Checklist */}
+                <div className="col-md-5 d-none d-md-flex flex-column justify-content-between p-4 p-lg-5 vw-register-art-panel text-start">
+                  
+                  {/* Employer Illustration */}
+                  <div className="text-center mb-4">
+                    <img
+                      src={employerIllustration}
+                      alt="Employer"
+                      className="img-fluid rounded-4 shadow-sm"
+                      style={{ maxHeight: "240px", objectFit: "cover" }}
+                    />
                   </div>
 
-                  <div className="p-3 rounded-3 bg-black bg-opacity-20 text-white-50 small border border-white border-opacity-10 mt-4">
-                    <div className="d-flex align-items-center gap-2 mb-1 text-white fw-semibold">
-                      <FaShieldAlt className="text-warning" size={13} />
-                      <span>Authorized Credential Issuer</span>
+                  <div>
+                    <h4 className="fw-bold text-dark mb-3" style={{ fontFamily: "var(--font-serif)" }}>
+                      Hire with Trust
+                    </h4>
+
+                    <div className="d-flex flex-column gap-2 small">
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Access verified profiles</span>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Secure and transparent</span>
+                      </div>
+
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="vw-check-circle-sm">
+                          <FaCheck size={8} />
+                        </div>
+                        <span className="fw-semibold text-dark">Build long-term relationships</span>
+                      </div>
                     </div>
-                    <span>Authorized employers issue tamper-proof work certificates anchored on Ethereum.</span>
                   </div>
+
+                  <div className="mt-4 pt-3 border-top border-secondary border-opacity-10 text-muted small">
+                    Authorized Smart Contract Issuer Network
+                  </div>
+
                 </div>
 
-                {/* Right Side: Registration Form */}
+                {/* Right Side: Form Panel */}
                 <div className="col-md-7 p-4 p-lg-5 bg-white text-start">
                   
                   <div className="mb-4">
-                    <span className="veriwork-pill-badge mb-2">
-                      HOUSEHOLD & BUSINESS
-                    </span>
-                    <h3 className="fw-bold text-dark mb-1">
-                      Register as an Employer
-                    </h3>
+                    <h2 className="fw-bold text-dark mb-1" style={{ fontFamily: "var(--font-serif)" }}>
+                      Create Employer Account
+                    </h2>
                     <p className="text-muted small">
-                      Please enter your contact details to begin issuing verified contracts.
+                      Find and hire verified domestic workers
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit}>
                     
-                    {/* Employer Name */}
+                    {/* Full Name / Company Name */}
                     <div className="mb-3">
-                      <label className="form-label">Name / Company / Household</label>
+                      <label className="form-label">Full Name / Company Name</label>
                       <input
                         type="text"
                         name="employerName"
                         className="form-control"
-                        placeholder="e.g. Dr. Rajesh & Meera Verma"
+                        placeholder="Enter your name or company name"
                         value={formData.employerName}
                         onChange={handleChange}
                         required
                       />
                     </div>
 
-                    {/* Phone */}
+                    {/* Phone Number */}
                     <div className="mb-3">
                       <label className="form-label">Phone Number</label>
                       <input
                         type="tel"
                         name="phone"
                         className="form-control"
-                        placeholder="10-digit Phone Number"
+                        placeholder="Enter your phone number"
                         value={formData.phone}
                         onChange={handleChange}
                         required
                       />
                     </div>
 
-                    {/* Email */}
+                    {/* Email Address */}
                     <div className="mb-3">
                       <label className="form-label">Email Address</label>
                       <input
@@ -136,21 +160,30 @@ function RegisterEmployer() {
                     {/* Password */}
                     <div className="mb-4">
                       <label className="form-label">Password</label>
-                      <input
-                        type="password"
-                        name="password"
-                        className="form-control"
-                        placeholder="Create a secure password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                      />
+                      <div className="position-relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          className="form-control pe-5"
+                          placeholder="Create a password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="btn position-absolute top-50 end-0 translate-middle-y text-muted border-0 me-2"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="btn-veriwork-dark w-100 py-3 mb-3 fw-bold"
+                      className="btn-mockup-ochre w-100 py-3 fw-bold"
                       disabled={loading}
                     >
                       {loading ? (
@@ -159,20 +192,16 @@ function RegisterEmployer() {
                           Creating Profile...
                         </>
                       ) : (
-                        <>
-                          <span>Create Employer Profile</span>
-                          <FaArrowRight size={12} className="ms-2" />
-                        </>
+                        "Create Employer Profile"
                       )}
                     </button>
 
                   </form>
 
-                  {/* Switch Links */}
-                  <div className="pt-3 border-top border-slate-200 small text-center text-md-start">
-                    <span className="text-muted">Already registered as an employer? </span>
-                    <Link to="/employer-login" className="text-dark fw-bold">
-                      Login here →
+                  <div className="text-center pt-3 small text-muted">
+                    Already registered?{" "}
+                    <Link to="/employer-login" className="text-dark fw-bold text-decoration-underline">
+                      Login here
                     </Link>
                   </div>
 
@@ -180,19 +209,33 @@ function RegisterEmployer() {
 
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
 
       <style>{`
-        .vw-register-split-wrapper {
+        .vw-register-page-wrapper {
           min-height: 85vh;
+          display: flex;
+          align-items: center;
         }
 
-        .vw-register-sidebar-employer {
-          background-color: var(--color-primary-darker);
-          position: relative;
+        .vw-register-art-panel {
+          background-color: var(--color-surface-cream, #F8F6F2);
+          border-right: 1px solid var(--color-border);
+        }
+
+        .vw-check-circle-sm {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background-color: #2E7D32;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
       `}</style>
     </div>

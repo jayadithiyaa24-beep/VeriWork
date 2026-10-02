@@ -1,36 +1,36 @@
-import { FaUserPlus, FaUserCheck, FaHandshake, FaRupeeSign, FaAward } from "react-icons/fa";
+import { FaHome, FaShieldAlt, FaUserTie, FaReceipt, FaStar, FaArrowRight } from "react-icons/fa";
 
 function HowItWorks() {
   const steps = [
     {
       step: "01",
-      icon: <FaUserPlus size={18} />,
+      icon: <FaHome size={18} />,
       title: "Worker Registers",
-      desc: "Create a digital profile with skills, experience, and privacy-shielded ID.",
+      desc: "Create a digital profile with skills and experience.",
     },
     {
       step: "02",
-      icon: <FaUserCheck size={18} />,
+      icon: <FaShieldAlt size={18} />,
       title: "Identity is Verified",
-      desc: "Verification is performed by employers and securely recorded on blockchain.",
+      desc: "Verification by employers and secure blockchain storage.",
     },
     {
       step: "03",
-      icon: <FaHandshake size={18} />,
+      icon: <FaUserTie size={18} />,
       title: "Employer Hires",
-      desc: "Employers connect with verified workers and create formal employment terms.",
+      desc: "Connect with verified workers.",
     },
     {
       step: "04",
-      icon: <FaRupeeSign size={18} />,
+      icon: <FaReceipt size={18} />,
       title: "Payments Recorded",
-      desc: "UPI and monthly wage activity updates verified employment history.",
+      desc: "UPI payments automatically update work history.",
     },
     {
       step: "05",
-      icon: <FaAward size={18} />,
+      icon: <FaStar size={18} />,
       title: "Build Reputation",
-      desc: "Ratings and reviews help establish an unalterable, trusted work credential.",
+      desc: "Collect ratings and build a trusted profile.",
     },
   ];
 
@@ -39,72 +39,91 @@ function HowItWorks() {
       
       {/* Section Header */}
       <div className="text-center max-w-700 mx-auto mb-5">
-        <span className="veriwork-pill-badge mb-3">
-          STEP-BY-STEP PROCESS
-        </span>
-        <h2 className="display-6 fw-bold mb-2">
+        <h2 className="display-6 fw-bold text-dark mb-2" style={{ fontFamily: "var(--font-serif)" }}>
           How It Works
         </h2>
-        <p className="text-muted lead" style={{ fontSize: "1.05rem" }}>
-          A simple and transparent process for everyone.
+        <p className="text-muted" style={{ fontSize: "1.05rem" }}>
+          A simple and transparent process for everyone
         </p>
       </div>
 
-      {/* 5-Step Horizontal Flow on Desktop, Vertical on Mobile */}
-      <div className="row g-3 justify-content-center">
+      {/* Horizontal Steps with Connecting Arrows */}
+      <div className="d-flex flex-wrap justify-content-center align-items-start gap-2 gap-lg-3 vw-steps-flow">
         {steps.map((item, index) => (
-          <div className="col-lg col-md-6 col-12" key={index} style={{ minWidth: "200px" }}>
-            <div className="veriwork-card p-4 h-100 text-start d-flex flex-column position-relative">
-              
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="vw-step-number">
-                  {item.step}
-                </div>
-                <div className="vw-step-icon text-muted">
-                  {item.icon}
-                </div>
+          <div key={index} className="d-flex align-items-center">
+            
+            {/* Step Card */}
+            <div className="text-center vw-step-item">
+              <div className="vw-step-icon-circle mx-auto mb-3">
+                {item.icon}
               </div>
 
-              <h5 className="fw-bold text-dark mb-2 fs-6">
-                {item.title}
-              </h5>
+              <div className="fw-bold text-dark mb-1 small">
+                {item.step}
+              </div>
 
-              <p className="text-muted small mb-0 flex-grow-1" style={{ lineHeight: "1.6", fontSize: "0.83rem" }}>
+              <h6 className="fw-bold text-dark mb-2" style={{ fontSize: "0.95rem" }}>
+                {item.title}
+              </h6>
+
+              <p className="text-muted small mb-0 vw-step-desc">
                 {item.desc}
               </p>
-
             </div>
+
+            {/* Connecting Arrow between steps (except last) */}
+            {index < steps.length - 1 && (
+              <div className="d-none d-lg-flex align-items-center px-2 text-muted opacity-50 vw-step-arrow">
+                <FaArrowRight size={14} />
+              </div>
+            )}
+
           </div>
         ))}
       </div>
 
       <style>{`
-        .vw-step-number {
-          font-family: var(--font-serif);
-          font-weight: 700;
-          font-size: 1.1rem;
-          color: var(--color-primary-dark);
-          background-color: var(--color-primary-light);
-          width: 38px;
-          height: 38px;
-          border-radius: var(--radius-sm);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .vw-step-item {
+          width: 195px;
+          padding: 10px;
         }
 
-        .vw-step-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: var(--radius-sm);
-          background-color: var(--color-surface-tint);
+        .vw-step-icon-circle {
+          width: 54px;
+          height: 54px;
+          border-radius: 50%;
+          background-color: var(--color-forest-light);
+          color: var(--color-forest);
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.2s ease;
+        }
+
+        .vw-step-item:hover .vw-step-icon-circle {
+          transform: scale(1.08);
+          background-color: #D3DFD3;
+        }
+
+        .vw-step-desc {
+          font-size: 0.82rem;
+          line-height: 1.5;
+        }
+
+        .vw-step-arrow {
+          margin-top: -40px;
         }
 
         .max-w-700 {
           max-width: 650px;
+        }
+
+        @media (max-width: 991px) {
+          .vw-step-item {
+            width: 100%;
+            max-width: 280px;
+            margin-bottom: 20px;
+          }
         }
       `}</style>
     </section>

@@ -1,114 +1,115 @@
 import { Link } from "react-router-dom";
-import { FaCheckCircle, FaShieldAlt, FaUserCheck, FaArrowRight, FaLock, FaFileContract, FaRupeeSign, FaHistory } from "react-icons/fa";
-import heroImg from "../assets/hero.png";
+import { FaArrowRight, FaShieldAlt, FaFileAlt, FaRupeeSign, FaCheck } from "react-icons/fa";
+import heroWorkerImg from "../assets/hero_worker.jpg";
 
 function Hero() {
   return (
     <section className="vw-hero-section py-5 position-relative overflow-hidden">
       <div className="container">
-        <div className="row align-items-center py-4">
+        <div className="row align-items-center py-3">
 
-          {/* Left Column: Headline & Value Proposition */}
+          {/* Left Column */}
           <div className="col-lg-6 text-start mb-5 mb-lg-0">
             
-            {/* Tagline */}
+            {/* Top Pill Tag */}
             <div className="mb-3">
-              <span className="veriwork-pill-badge">
-                <FaShieldAlt size={12} className="text-warning" />
-                <span>A Safer, Fairer Workforce</span>
+              <span className="mockup-tag-pill">
+                A Safer, Fairer Workforce
               </span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="vw-hero-title mb-3">
+            {/* Headline */}
+            <h1 className="vw-hero-headline mb-3">
               Trusted Work.<br />
-              <span className="text-primary-dark">Verified Identity.</span>
+              Verified Identity.
             </h1>
 
             {/* Subtitle */}
-            <p className="vw-hero-lead mb-4 pe-lg-3">
-              Building a secure and transparent digital identity for informal domestic workers, 
-              powered by trusted technology. Portable work history, verified wages, and mutual trust.
+            <p className="vw-hero-subtitle mb-4 pe-lg-4">
+              Building a secure and transparent digital identity for informal domestic workers, powered by blockchain.
             </p>
 
-            {/* CTAs */}
+            {/* Action Buttons */}
             <div className="d-flex flex-wrap gap-3 mb-5">
-              <Link to="/register-worker" className="btn-veriwork-primary py-3 px-4">
-                <FaUserCheck className="me-1" />
+              <Link to="/register-worker" className="btn-mockup-forest py-3 px-4">
                 <span>Register as Worker</span>
+                <FaArrowRight size={12} className="ms-1" />
               </Link>
 
-              <Link to="/register-employer" className="btn-veriwork-accent py-3 px-4">
+              <Link to="/register-employer" className="btn-mockup-ochre py-3 px-4">
                 <span>Hire a Worker</span>
                 <FaArrowRight size={12} className="ms-1" />
               </Link>
             </div>
 
-            {/* Hero Trust Indicators */}
-            <div className="row g-3 pt-3 border-top border-secondary border-opacity-10 vw-hero-trust-indicators">
-              <div className="col-6 col-sm-3 d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-sage" size={14} />
-                <span className="small fw-semibold text-dark">Verified Identities</span>
+            {/* 3 Trust Badges */}
+            <div className="d-flex flex-wrap gap-3 pt-2">
+              <div className="mockup-trust-badge">
+                <div className="vw-trust-icon-box">
+                  <FaShieldAlt size={14} />
+                </div>
+                <span className="fw-semibold text-dark small">Verified Identities</span>
               </div>
-              <div className="col-6 col-sm-3 d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-sage" size={14} />
-                <span className="small fw-semibold text-dark">Secure Records</span>
+
+              <div className="mockup-trust-badge">
+                <div className="vw-trust-icon-box">
+                  <FaFileAlt size={14} />
+                </div>
+                <span className="fw-semibold text-dark small">Secure Records</span>
               </div>
-              <div className="col-6 col-sm-3 d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-sage" size={14} />
-                <span className="small fw-semibold text-dark">Transparent Payments</span>
-              </div>
-              <div className="col-6 col-sm-3 d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-sage" size={14} />
-                <span className="small fw-semibold text-dark">Trusted Work History</span>
+
+              <div className="mockup-trust-badge">
+                <div className="vw-trust-icon-box">
+                  <FaRupeeSign size={14} />
+                </div>
+                <span className="fw-semibold text-dark small">Transparent Payments</span>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column: Visual with Overlaid Verification Trust Card */}
+          {/* Right Column: Hero Photo & Verification Overlay */}
           <div className="col-lg-6 text-center position-relative">
-            <div className="vw-hero-image-wrapper mx-auto position-relative">
+            <div className="vw-hero-portrait-wrapper mx-auto position-relative">
               
-              {/* Background organic shape */}
-              <div className="vw-hero-blob"></div>
+              {/* Main Worker Portrait */}
+              <div className="vw-hero-portrait-circle overflow-hidden shadow-lg mx-auto">
+                <img
+                  src={heroWorkerImg}
+                  alt="Verified Domestic Worker"
+                  className="img-fluid vw-hero-portrait-img"
+                />
+              </div>
 
-              {/* Existing Hero Image */}
-              <img
-                src={heroImg}
-                alt="Domestic Worker Digital Identity and Verification"
-                className="img-fluid vw-hero-img position-relative"
-                style={{ zIndex: 2, maxHeight: "440px", objectFit: "contain" }}
-              />
+              {/* Floating Verification Checklist Card */}
+              <div className="vw-hero-floating-card mockup-card p-3 text-start position-absolute animate-subtle-float">
+                <div className="d-flex flex-column gap-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="vw-check-circle">
+                      <FaCheck size={9} />
+                    </div>
+                    <span className="fw-bold text-dark small">Verified Worker</span>
+                  </div>
 
-              {/* Floating Verification Badge Card */}
-              <div className="vw-floating-trust-card veriwork-card p-3 text-start position-absolute animate-subtle-float">
-                <div className="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-secondary border-opacity-10">
-                  <div className="vw-badge-avatar">
-                    <FaShieldAlt size={14} />
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="vw-check-circle">
+                      <FaCheck size={9} />
+                    </div>
+                    <span className="fw-bold text-dark small">ID Verified</span>
                   </div>
-                  <div>
-                    <div className="fw-bold text-dark small" style={{ lineHeight: "1.2" }}>VeriWork Trust Seal</div>
-                    <div className="text-muted" style={{ fontSize: "0.7rem" }}>Cryptographically Anchored</div>
-                  </div>
-                </div>
 
-                <div className="d-flex flex-column gap-1 small">
                   <div className="d-flex align-items-center gap-2">
-                    <FaCheckCircle className="text-sage" size={12} />
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.8rem" }}>Verified Worker</span>
+                    <div className="vw-check-circle">
+                      <FaCheck size={9} />
+                    </div>
+                    <span className="fw-bold text-dark small">Work History</span>
                   </div>
+
                   <div className="d-flex align-items-center gap-2">
-                    <FaCheckCircle className="text-sage" size={12} />
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.8rem" }}>ID Verified (Aadhaar Hashed)</span>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <FaCheckCircle className="text-sage" size={12} />
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.8rem" }}>Work History Recorded</span>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <FaCheckCircle className="text-sage" size={12} />
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.8rem" }}>Secure Payments</span>
+                    <div className="vw-check-circle">
+                      <FaCheck size={9} />
+                    </div>
+                    <span className="fw-bold text-dark small">Secure Payments</span>
                   </div>
                 </div>
               </div>
@@ -122,74 +123,91 @@ function Hero() {
       <style>{`
         .vw-hero-section {
           background-color: var(--color-bg);
+          min-height: 80vh;
+          display: flex;
+          align-items: center;
         }
 
-        .vw-hero-title {
-          font-size: 3.5rem;
+        .vw-hero-headline {
+          font-family: var(--font-serif);
+          font-size: 3.8rem;
           line-height: 1.1;
+          font-weight: 700;
           letter-spacing: -0.025em;
           color: var(--color-text);
         }
 
-        .text-primary-dark {
-          color: var(--color-primary-dark);
-        }
-
-        .vw-hero-lead {
+        .vw-hero-subtitle {
           font-size: 1.15rem;
           color: var(--color-text-muted);
           line-height: 1.7;
-          max-width: 540px;
+          max-width: 520px;
         }
 
-        .text-sage {
-          color: var(--color-primary);
-        }
-
-        .vw-hero-image-wrapper {
-          max-width: 500px;
-        }
-
-        .vw-hero-blob {
-          position: absolute;
-          top: 10%;
-          left: 10%;
-          width: 80%;
-          height: 80%;
-          background-color: #E6E1D7;
-          border-radius: 60% 40% 70% 30% / 40% 50% 60% 50%;
-          z-index: 1;
-        }
-
-        .vw-floating-trust-card {
-          bottom: 10px;
-          left: -15px;
-          z-index: 3;
-          width: 250px;
-          box-shadow: var(--shadow-lg);
-          border: 1px solid var(--color-border);
-        }
-
-        .vw-badge-avatar {
-          width: 28px;
-          height: 28px;
-          border-radius: var(--radius-sm);
-          background-color: var(--color-primary);
-          color: #FFFFFF;
+        .vw-trust-icon-box {
+          width: 30px;
+          height: 30px;
+          border-radius: 8px;
+          background-color: var(--color-forest-light);
+          color: var(--color-forest);
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        @media (max-width: 768px) {
-          .vw-hero-title {
-            font-size: 2.5rem;
+        .vw-hero-portrait-wrapper {
+          max-width: 460px;
+          position: relative;
+        }
+
+        .vw-hero-portrait-circle {
+          width: 420px;
+          height: 420px;
+          border-radius: 50%;
+          border: 8px solid rgba(255, 255, 255, 0.7);
+          box-shadow: 0 20px 50px rgba(43, 38, 37, 0.15);
+        }
+
+        .vw-hero-portrait-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .vw-hero-floating-card {
+          bottom: 25px;
+          right: -10px;
+          width: 190px;
+          border-radius: 18px;
+          box-shadow: 0 16px 36px rgba(43, 38, 37, 0.15);
+          background-color: #FFFFFF;
+          border: 1px solid var(--color-border);
+          z-index: 3;
+        }
+
+        .vw-check-circle {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background-color: #2E7D32;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 991px) {
+          .vw-hero-headline {
+            font-size: 2.8rem;
           }
-          .vw-floating-trust-card {
-            position: relative;
-            left: 0;
+          .vw-hero-portrait-circle {
+            width: 320px;
+            height: 320px;
+          }
+          .vw-hero-floating-card {
+            right: 0;
             bottom: 0;
-            margin: 20px auto 0;
           }
         }
       `}</style>
