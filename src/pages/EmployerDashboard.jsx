@@ -709,9 +709,8 @@ function EmployerDashboard() {
 
   return (
     <div
-      className="container-fluid py-5"
+      className="container-fluid py-5 vw-dashboard-view"
       style={{
-        background: "#f4f8ff",
         minHeight: "100vh",
       }}
     >
