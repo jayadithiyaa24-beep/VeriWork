@@ -28,14 +28,18 @@ function Login() {
     try {
       const response = await loginWorker(formData);
 
-      // Save JWT token
-      localStorage.setItem("token", response.token);
+      // Save JWT token in tab-scoped session storage
+      sessionStorage.setItem("token", response.token);
 
       // Save worker information
-      localStorage.setItem(
+      sessionStorage.setItem(
         "worker",
         JSON.stringify(response.worker)
       );
+
+      // Clear legacy localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("worker");
 
       toast.success("Login Successful!");
 

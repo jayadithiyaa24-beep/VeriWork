@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_34-b8c2d68fa38741b41abbad7ec3444ee0b2682ab7",
+  "solcVersion": "0.8.34",
+  "solcLongVersion": "0.8.34+commit.80d5c536",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.15.0"
+  },
+  "userSourceNameMap": {
+    "contracts/VeriWorkCertificate.sol": "project/contracts/VeriWorkCertificate.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "osaka",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/VeriWorkCertificate.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.34;\r\n\r\ncontract VeriWorkCertificate {\r\n    struct Certificate {\r\n        string certificateId;\r\n        bytes32 certificateHash;\r\n        address registeredBy;\r\n        uint256 registeredAt;\r\n        bool exists;\r\n    }\r\n\r\n    mapping(string => Certificate) private certificates;\r\n\r\n    event CertificateRegistered(\r\n        string certificateId,\r\n        bytes32 certificateHash,\r\n        address registeredBy,\r\n        uint256 registeredAt\r\n    );\r\n\r\n    function registerCertificate(\r\n        string memory certificateId,\r\n        bytes32 certificateHash\r\n    ) public {\r\n        require(\r\n            bytes(certificateId).length > 0,\r\n            \"Certificate ID is required\"\r\n        );\r\n\r\n        require(\r\n            certificateHash != bytes32(0),\r\n            \"Certificate hash is required\"\r\n        );\r\n\r\n        require(\r\n            !certificates[certificateId].exists,\r\n            \"Certificate already registered\"\r\n        );\r\n\r\n        certificates[certificateId] = Certificate({\r\n            certificateId: certificateId,\r\n            certificateHash: certificateHash,\r\n            registeredBy: msg.sender,\r\n            registeredAt: block.timestamp,\r\n            exists: true\r\n        });\r\n\r\n        emit CertificateRegistered(\r\n            certificateId,\r\n            certificateHash,\r\n            msg.sender,\r\n            block.timestamp\r\n        );\r\n    }\r\n\r\n    function verifyCertificate(\r\n        string memory certificateId,\r\n        bytes32 certificateHash\r\n    ) public view returns (bool) {\r\n        Certificate memory certificate =\r\n            certificates[certificateId];\r\n\r\n        if (!certificate.exists) {\r\n            return false;\r\n        }\r\n\r\n        return certificate.certificateHash == certificateHash;\r\n    }\r\n\r\n    function getCertificate(\r\n        string memory certificateId\r\n    )\r\n        public\r\n        view\r\n        returns (\r\n            string memory,\r\n            bytes32,\r\n            address,\r\n            uint256,\r\n            bool\r\n        )\r\n    {\r\n        Certificate memory certificate =\r\n            certificates[certificateId];\r\n\r\n        require(\r\n            certificate.exists,\r\n            \"Certificate not found\"\r\n        );\r\n\r\n        return (\r\n            certificate.certificateId,\r\n            certificate.certificateHash,\r\n            certificate.registeredBy,\r\n            certificate.registeredAt,\r\n            certificate.exists\r\n        );\r\n    }\r\n}"
+      }
+    }
+  }
+}

@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Worker = require("../models/Worker");
 
-
 // =================================
 // WORKER REGISTRATION
 // =================================
@@ -20,47 +19,104 @@ const registerWorker = async (req, res) => {
       password,
     } = req.body;
 
-    const existingWorker = await Worker.findOne({ email });
+    // Check whether all required fields are provided
+    if (
+      !fullName ||
+      !email ||
+      !phone ||
+      !aadhaar ||
+      !address ||
+      !skills ||
+      !experience ||
+      !password
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // Input validation
+    const cleanedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address.",
+      });
+    }
+
+    const cleanedPhone = phone.replace(/\D/g, "");
+    if (cleanedPhone.length !== 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be exactly 10 digits.",
+      });
+    }
+
+    const cleanedAadhaar = aadhaar.replace(/\D/g, "");
+    if (cleanedAadhaar.length !== 12) {
+      return res.status(400).json({
+        success: false,
+        message: "Aadhaar number must be exactly 12 digits.",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long.",
+      });
+    }
+
+    // Check if worker already exists by email or Aadhaar
+    const existingWorker = await Worker.findOne({
+      $or: [{ email: cleanedEmail }, { aadhaar: cleanedAadhaar }],
+    });
 
     if (existingWorker) {
       return res.status(400).json({
         success: false,
-        message: "Worker already exists",
+        message: existingWorker.email === cleanedEmail
+          ? "Worker with this email already exists."
+          : "Worker with this Aadhaar number already exists.",
       });
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create worker
     const worker = await Worker.create({
-      fullName,
-      email,
-      phone,
-      aadhaar,
-      address,
-      skills,
-      experience,
+      fullName: fullName.trim(),
+      email: cleanedEmail,
+      phone: cleanedPhone,
+      aadhaar: cleanedAadhaar,
+      address: address.trim(),
+      skills: skills.trim(),
+      experience: Number(experience) || 0,
       password: hashedPassword,
     });
 
+    // Remove password & mask Aadhaar before sending response
     const workerResponse = worker.toObject();
-
-    // Never send password to frontend
     delete workerResponse.password;
+    workerResponse.aadhaar = `XXXX-XXXX-${cleanedAadhaar.slice(-4)}`;
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Worker Registered Successfully",
       worker: workerResponse,
     });
-
   } catch (error) {
-    res.status(500).json({
+    console.error("Worker Registration Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 
 // =================================
 // WORKER LOGIN
@@ -78,8 +134,10 @@ const loginWorker = async (req, res) => {
       });
     }
 
-    // Find worker
-    const worker = await Worker.findOne({ email });
+    const cleanedEmail = email.trim().toLowerCase();
+
+    // Find worker by email
+    const worker = await Worker.findOne({ email: cleanedEmail });
 
     if (!worker) {
       return res.status(401).json({
@@ -114,26 +172,28 @@ const loginWorker = async (req, res) => {
       }
     );
 
-    // Remove password from response
+    // Remove password and mask Aadhaar before sending worker data
     const workerResponse = worker.toObject();
-
     delete workerResponse.password;
+    if (workerResponse.aadhaar) {
+      workerResponse.aadhaar = `XXXX-XXXX-${workerResponse.aadhaar.slice(-4)}`;
+    }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login Successful",
       token,
       worker: workerResponse,
     });
-
   } catch (error) {
-    res.status(500).json({
+    console.error("Worker Login Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 
 // =================================
 // GET WORKER PROFILE
@@ -141,10 +201,8 @@ const loginWorker = async (req, res) => {
 
 const getWorkerProfile = async (req, res) => {
   try {
-
     // req.user.id comes from JWT middleware
-    const worker = await Worker.findById(req.user.id)
-      .select("-password");
+    const worker = await Worker.findById(req.user.id).select("-password");
 
     if (!worker) {
       return res.status(404).json({
@@ -153,19 +211,73 @@ const getWorkerProfile = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      worker,
-    });
+    const workerResponse = worker.toObject();
+    if (workerResponse.aadhaar) {
+      workerResponse.aadhaar = `XXXX-XXXX-${workerResponse.aadhaar.slice(-4)}`;
+    }
 
+    return res.status(200).json({
+      success: true,
+      worker: workerResponse,
+    });
   } catch (error) {
-    res.status(500).json({
+    console.error("Get Worker Profile Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+// =================================
+// CONNECT WORKER WALLET
+// =================================
+
+const connectWorkerWallet = async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+
+    if (!walletAddress) {
+      return res.status(400).json({
+        success: false,
+        message: "Wallet address is required",
+      });
+    }
+
+    const worker = await Worker.findByIdAndUpdate(
+      req.user.id,
+      { walletAddress: walletAddress.toLowerCase().trim() },
+      { new: true }
+    ).select("-password");
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    const workerResponse = worker.toObject();
+    if (workerResponse.aadhaar) {
+      workerResponse.aadhaar = `XXXX-XXXX-${workerResponse.aadhaar.slice(-4)}`;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Worker wallet connected successfully",
+      worker: workerResponse,
+      walletAddress: worker.walletAddress,
+    });
+  } catch (error) {
+    console.error("Connect Worker Wallet Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 // =================================
 // EXPORT CONTROLLERS
@@ -175,4 +287,5 @@ module.exports = {
   registerWorker,
   loginWorker,
   getWorkerProfile,
+  connectWorkerWallet,
 };

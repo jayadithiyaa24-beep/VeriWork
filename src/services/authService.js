@@ -1,6 +1,9 @@
 import api from "./api";
 
-// Worker Login
+// =================================
+// WORKER LOGIN
+// =================================
+
 export const loginWorker = async (loginData) => {
   const response = await api.post(
     "/workers/login",
@@ -10,9 +13,12 @@ export const loginWorker = async (loginData) => {
   return response.data;
 };
 
-// Get logged-in worker profile
+// =================================
+// GET LOGGED-IN WORKER PROFILE
+// =================================
+
 export const getWorkerProfile = async () => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await api.get(
     "/workers/profile",

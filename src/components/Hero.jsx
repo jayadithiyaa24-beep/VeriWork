@@ -6,7 +6,10 @@ function Hero() {
     <section
       className="py-5"
       style={{
-        background: "linear-gradient(135deg, #f5f9ff 0%, #eef4ff 100%)",
+        backgroundImage: "linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('/veriwork-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         minHeight: "90vh",
         display: "flex",
         alignItems: "center",

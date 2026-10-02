@@ -6,22 +6,42 @@ const {
   registerWorker,
   loginWorker,
   getWorkerProfile,
+  connectWorkerWallet,
 } = require("../controllers/workerController");
 
-const protect = require("../middleware/authMiddleware");
+const {
+  protect,
+  authorize,
+} = require("../middleware/authMiddleware");
 
 // =================================
 // PUBLIC ROUTES
 // =================================
 
+// Worker Registration
 router.post("/register", registerWorker);
 
+// Worker Login
 router.post("/login", loginWorker);
 
 // =================================
 // PROTECTED ROUTES
 // =================================
 
-router.get("/profile", protect, getWorkerProfile);
+// Get Logged-in Worker Profile
+router.get(
+  "/profile",
+  protect,
+  authorize("worker"),
+  getWorkerProfile
+);
+
+// Connect Worker Wallet
+router.post(
+  "/connect-wallet",
+  protect,
+  authorize("worker"),
+  connectWorkerWallet
+);
 
 module.exports = router;
