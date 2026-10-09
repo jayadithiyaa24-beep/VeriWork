@@ -111,40 +111,13 @@ function Navbar() {
           aria-label="VeriWork Home"
         >
           <span className="vw-brand-icon">
-            <svg
+            <img
+              src="/logo.svg"
+              alt=""
               width="31"
               height="31"
-              viewBox="0 0 28 28"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
-            >
-              <path
-                d="M14 2C14 2 13 8 7 10C13 12 14 18 14 18C14 18 15 12 21 10C15 8 14 2 14 2Z"
-                fill="#354A36"
-              />
-
-              <path
-                d="M7 16C7 16 10 18 10 22C10 22 14 19 14 19"
-                stroke="#C98A41"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-
-              <path
-                d="M21 16C21 16 18 18 18 22C18 22 14 19 14 19"
-                stroke="#C98A41"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-
-              <path
-                d="M14 18V26"
-                stroke="#354A36"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            />
           </span>
 
           <span className="vw-brand-name">
@@ -1259,7 +1232,7 @@ function Navbar() {
         }
 
       `}</style>
-    </nav>
+    </nav >
   );
 }
 
