@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import storage from "./utils/storage";
 
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -26,175 +26,298 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   useEffect(() => {
-    // Purge any residual tokens stored in localStorage to enforce tab-scoped privacy
+    // Purge any residual tokens stored in localStorage
+    // to enforce tab-scoped privacy.
     storage.purgeLegacyPersistentStorage();
   }, []);
 
   return (
     <BrowserRouter>
+      <div className="vw-app">
 
-      {/* =============================== */}
-      {/* NAVBAR */}
-      {/* =============================== */}
+        {/* =====================================================
+            NAVBAR
+        ===================================================== */}
 
-      <Navbar />
+        <Navbar />
 
-      {/* =============================== */}
-      {/* ROUTES */}
-      {/* =============================== */}
 
-      <Routes>
+        {/* =====================================================
+            MAIN APPLICATION
+        ===================================================== */}
 
-        {/* =============================== */}
-        {/* HOME */}
-        {/* =============================== */}
+        <main className="vw-app-main">
 
-        <Route
-          path="/"
-          element={<Home />}
+          <Routes>
+
+            {/* =================================================
+                PUBLIC PAGES
+            ================================================= */}
+
+            <Route
+              path="/"
+              element={<Home />}
+            />
+
+            <Route
+              path="/about"
+              element={<About />}
+            />
+
+            <Route
+              path="/get-started"
+              element={<GetStarted />}
+            />
+
+
+            {/* =================================================
+                WORKER AUTHENTICATION
+            ================================================= */}
+
+            <Route
+              path="/login"
+              element={<Login />}
+            />
+
+            <Route
+              path="/register-worker"
+              element={<RegisterWorker />}
+            />
+
+
+            {/* =================================================
+                EMPLOYER AUTHENTICATION
+            ================================================= */}
+
+            <Route
+              path="/employer-login"
+              element={<EmployerLogin />}
+            />
+
+            <Route
+              path="/register-employer"
+              element={<RegisterEmployer />}
+            />
+
+
+            {/* =================================================
+                PUBLIC CERTIFICATE VERIFICATION
+            ================================================= */}
+
+            <Route
+              path="/verify-certificate"
+              element={<VerifyCertificate />}
+            />
+
+            <Route
+              path="/verify-certificate/:certificateId"
+              element={<VerifyCertificate />}
+            />
+
+            <Route
+              path="/verify/:certificateId"
+              element={<VerifyCertificate />}
+            />
+
+
+            {/* =================================================
+                WORKER DASHBOARD
+                PROTECTED
+            ================================================= */}
+
+            <Route
+              path="/worker-dashboard"
+              element={
+                <ProtectedRoute type="worker">
+                  <WorkerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+
+            {/* =================================================
+                EMPLOYER DASHBOARD
+                PROTECTED
+            ================================================= */}
+
+            <Route
+              path="/employer-dashboard"
+              element={
+                <ProtectedRoute type="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+
+            {/* =================================================
+                ADMIN
+            ================================================= */}
+
+            <Route
+              path="/admin"
+              element={<AdminDashboard />}
+            />
+
+
+            {/* =================================================
+                404
+            ================================================= */}
+
+            <Route
+              path="*"
+              element={<NotFound />}
+            />
+
+          </Routes>
+
+        </main>
+
+
+        {/* =====================================================
+            FOOTER
+        ===================================================== */}
+
+        <Footer />
+
+
+        {/* =====================================================
+            TOAST NOTIFICATIONS
+        ===================================================== */}
+
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          pauseOnFocusLoss
+          theme="colored"
         />
 
-        {/* =============================== */}
-        {/* ABOUT */}
-        {/* =============================== */}
+      </div>
 
-        <Route
-          path="/about"
-          element={<About />}
-        />
 
-        {/* =============================== */}
-        {/* GET STARTED */}
-        {/* =============================== */}
+      {/* =======================================================
+          APP SHELL STYLES
+      ======================================================= */}
 
-        <Route
-          path="/get-started"
-          element={<GetStarted />}
-        />
+      <style>{`
 
-        {/* =============================== */}
-        {/* WORKER LOGIN */}
-        {/* =============================== */}
+        /* =====================================================
+           APP ROOT
+        ===================================================== */
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+        .vw-app {
+          min-height: 100vh;
 
-        {/* =============================== */}
-        {/* EMPLOYER LOGIN */}
-        {/* =============================== */}
+          display: flex;
+          flex-direction: column;
 
-        <Route
-          path="/employer-login"
-          element={<EmployerLogin />}
-        />
+          background: var(--color-bg, #EFECE6);
 
-        {/* =============================== */}
-        {/* WORKER REGISTRATION */}
-        {/* =============================== */}
+          color: var(--color-text, #2B2625);
+        }
 
-        <Route
-          path="/register-worker"
-          element={<RegisterWorker />}
-        />
 
-        {/* =============================== */}
-        {/* EMPLOYER REGISTRATION */}
-        {/* =============================== */}
+        /* =====================================================
+           MAIN CONTENT
+        ===================================================== */
 
-        <Route
-          path="/register-employer"
-          element={<RegisterEmployer />}
-        />
+        .vw-app-main {
+          flex: 1;
 
-        {/* =============================== */}
-        {/* PUBLIC CERTIFICATE VERIFICATION */}
-        {/* =============================== */}
+          width: 100%;
 
-        <Route
-          path="/verify-certificate"
-          element={<VerifyCertificate />}
-        />
-        <Route
-          path="/verify-certificate/:certificateId"
-          element={<VerifyCertificate />}
-        />
-        <Route
-          path="/verify/:certificateId"
-          element={<VerifyCertificate />}
-        />
+          background: var(--color-bg, #EFECE6);
+        }
 
-        {/* =============================== */}
-        {/* WORKER DASHBOARD */}
-        {/* PROTECTED */}
-        {/* =============================== */}
 
-        <Route
-          path="/worker-dashboard"
-          element={
-            <ProtectedRoute type="worker">
-              <WorkerDashboard />
-            </ProtectedRoute>
+        /* =====================================================
+           PREVENT HORIZONTAL OVERFLOW
+        ===================================================== */
+
+        .vw-app {
+          overflow-x: hidden;
+        }
+
+
+        /* =====================================================
+           TOASTIFY
+        ===================================================== */
+
+        .Toastify__toast-container--top-right,
+        .Toastify__toast-container--top-center,
+        .Toastify__toast-container--top-left {
+          top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+        }
+
+        .Toastify__toast {
+          border-radius: 12px !important;
+
+          font-family:
+            var(
+              --font-sans,
+              Inter,
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
+              sans-serif
+            ) !important;
+
+          font-size: 0.82rem !important;
+
+          box-shadow:
+            0 10px 30px rgba(43, 38, 37, 0.12) !important;
+        }
+
+
+        .Toastify__toast-body {
+          font-weight: 500;
+        }
+
+
+        .Toastify__progress-bar {
+          opacity: 0.7;
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 767.98px) {
+
+          .vw-app-main {
+            min-width: 0;
           }
-        />
 
-        {/* =============================== */}
-        {/* EMPLOYER DASHBOARD */}
-        {/* PROTECTED */}
-        {/* =============================== */}
+        }
 
-        <Route
-          path="/employer-dashboard"
-          element={
-            <ProtectedRoute type="employer">
-              <EmployerDashboard />
-            </ProtectedRoute>
+
+        /* =====================================================
+           REDUCED MOTION
+        ===================================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+
+          .vw-app *,
+          .vw-app *::before,
+          .vw-app *::after {
+            scroll-behavior: auto !important;
+
+            animation-duration: 0.01ms !important;
+
+            animation-iteration-count: 1 !important;
+
+            transition-duration: 0.01ms !important;
           }
-        />
 
-        {/* =============================== */}
-        {/* ADMIN DASHBOARD & GOVERNANCE */}
-        {/* =============================== */}
+        }
 
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
-
-        {/* =============================== */}
-        {/* 404 PAGE */}
-        {/* =============================== */}
-
-        <Route
-          path="*"
-          element={<NotFound />}
-        />
-
-      </Routes>
-
-      {/* =============================== */}
-      {/* FOOTER */}
-      {/* =============================== */}
-
-      <Footer />
-
-      {/* =============================== */}
-      {/* TOAST NOTIFICATIONS */}
-      {/* =============================== */}
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        pauseOnFocusLoss
-        theme="colored"
-      />
-
+      `}</style>
     </BrowserRouter>
   );
 }

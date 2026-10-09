@@ -1,29 +1,150 @@
-body{
-    background:#ffffff;
-    font-family:Arial,Helvetica,sans-serif;
+/* =========================================================
+   GLOBAL WEBSITE STYLES
+   VeriWork UI System
+========================================================= */
+
+body {
+    margin: 0;
+
+    background: var(--color-bg, #EFECE6);
+
+    color: var(--color-text, #2B2625);
+
+    font-family:
+        var(--font-sans,
+            Inter,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Arial,
+            Helvetica,
+            sans-serif);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.feature-card{
-    transition:.4s;
-    cursor:pointer;
+
+/* =========================================================
+   LINKS
+========================================================= */
+
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
-.feature-card:hover{
-
-    transform:translateY(-10px);
-
-    box-shadow:0px 20px 40px rgba(0,0,0,.15);
-
+a:hover {
+    color: inherit;
 }
 
-.btn{
 
-    transition:.3s;
+/* =========================================================
+   BUTTONS
+========================================================= */
 
+.btn {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease,
+        border-color 0.25s ease;
 }
 
-.btn:hover{
+.btn:hover {
+    transform: translateY(-2px);
+}
 
-    transform:scale(1.05);
 
-} 
+/* =========================================================
+   FEATURE CARDS
+========================================================= */
+
+.feature-card {
+    cursor: pointer;
+
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease,
+        border-color 0.35s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+
+    box-shadow:
+        0 18px 38px rgba(43, 38, 37, 0.10);
+}
+
+
+/* =========================================================
+   GENERAL VERIWORK CARDS
+========================================================= */
+
+.vw-card,
+.veriwork-card {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+
+/* =========================================================
+   IMAGES
+========================================================= */
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+    background: rgba(122, 139, 123, 0.25);
+    color: var(--color-text, #2B2625);
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg, #EFECE6);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(43, 38, 37, 0.22);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(43, 38, 37, 0.35);
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+}

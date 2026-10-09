@@ -1,14 +1,23 @@
 // =========================================================
-// TAB-SCOPED PRIVACY STORAGE UTILITY
+// WEB BROWSER STORAGE UTILITY
 // =========================================================
-// Uses sessionStorage so credentials are strictly scoped to the active tab.
-// Copying/pasting links into a new tab or window will NOT open a user's account;
-// it will immediately redirect unauthorized new tabs to the login page.
+// Uses sessionStorage for tab-scoped privacy (standard web behavior).
+// All persistent mobile/Capacitor code has been completely removed.
 
 export const storage = {
-  // Worker Token & Session
-  getWorkerToken: () => sessionStorage.getItem("token"),
-  setWorkerToken: (token) => sessionStorage.setItem("token", token),
+  // Retained as a resolved no-op for backward compatibility
+  init: async () => {},
+
+  // =========================================================
+  // WORKER AUTHENTICATION & SESSION
+  // =========================================================
+
+  getWorkerToken: () => sessionStorage.getItem("token") || "",
+
+  setWorkerToken: (token) => {
+    sessionStorage.setItem("token", token);
+  },
+
   removeWorkerToken: () => {
     sessionStorage.removeItem("token");
     localStorage.removeItem("token");
@@ -22,15 +31,46 @@ export const storage = {
       return null;
     }
   },
-  setWorker: (worker) => sessionStorage.setItem("worker", JSON.stringify(worker)),
+
+  setWorker: (worker) => {
+    const val = typeof worker === "string" ? worker : JSON.stringify(worker);
+    sessionStorage.setItem("worker", val);
+  },
+
   removeWorker: () => {
     sessionStorage.removeItem("worker");
     localStorage.removeItem("worker");
   },
 
-  // Employer Token & Session
-  getEmployerToken: () => sessionStorage.getItem("employerToken"),
-  setEmployerToken: (token) => sessionStorage.setItem("employerToken", token),
+  saveWorkerSession: ({ token, worker }) => {
+    if (token) {
+      sessionStorage.setItem("token", token);
+    }
+    if (worker) {
+      const val = typeof worker === "string" ? worker : JSON.stringify(worker);
+      sessionStorage.setItem("worker", val);
+    }
+  },
+
+  clearWorkerSession: () => {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("worker");
+    sessionStorage.removeItem("workerWallet");
+    localStorage.removeItem("token");
+    localStorage.removeItem("worker");
+    localStorage.removeItem("workerWallet");
+  },
+
+  // =========================================================
+  // EMPLOYER AUTHENTICATION & SESSION
+  // =========================================================
+
+  getEmployerToken: () => sessionStorage.getItem("employerToken") || "",
+
+  setEmployerToken: (token) => {
+    sessionStorage.setItem("employerToken", token);
+  },
+
   removeEmployerToken: () => {
     sessionStorage.removeItem("employerToken");
     localStorage.removeItem("employerToken");
@@ -44,28 +84,66 @@ export const storage = {
       return null;
     }
   },
-  setEmployer: (employer) => sessionStorage.setItem("employer", JSON.stringify(employer)),
+
+  setEmployer: (employer) => {
+    const val = typeof employer === "string" ? employer : JSON.stringify(employer);
+    sessionStorage.setItem("employer", val);
+  },
+
   removeEmployer: () => {
     sessionStorage.removeItem("employer");
     localStorage.removeItem("employer");
   },
 
-  // Wallets (scoped to session)
+  saveEmployerSession: ({ token, employer }) => {
+    if (token) {
+      sessionStorage.setItem("employerToken", token);
+    }
+    if (employer) {
+      const val = typeof employer === "string" ? employer : JSON.stringify(employer);
+      sessionStorage.setItem("employer", val);
+    }
+  },
+
+  clearEmployerSession: () => {
+    sessionStorage.removeItem("employerToken");
+    sessionStorage.removeItem("employer");
+    sessionStorage.removeItem("employerWallet");
+    localStorage.removeItem("employerToken");
+    localStorage.removeItem("employer");
+    localStorage.removeItem("employerWallet");
+  },
+
+  // =========================================================
+  // WALLET ADDRESSES
+  // =========================================================
+
   getWorkerWallet: () => sessionStorage.getItem("workerWallet") || "",
-  setWorkerWallet: (addr) => sessionStorage.setItem("workerWallet", addr),
+
+  setWorkerWallet: (addr) => {
+    sessionStorage.setItem("workerWallet", addr);
+  },
+
   removeWorkerWallet: () => {
     sessionStorage.removeItem("workerWallet");
     localStorage.removeItem("workerWallet");
   },
 
   getEmployerWallet: () => sessionStorage.getItem("employerWallet") || "",
-  setEmployerWallet: (addr) => sessionStorage.setItem("employerWallet", addr),
+
+  setEmployerWallet: (addr) => {
+    sessionStorage.setItem("employerWallet", addr);
+  },
+
   removeEmployerWallet: () => {
     sessionStorage.removeItem("employerWallet");
     localStorage.removeItem("employerWallet");
   },
 
-  // Global Clean Legacy
+  // =========================================================
+  // LEGACY CLEANUP
+  // =========================================================
+
   purgeLegacyPersistentStorage: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("worker");

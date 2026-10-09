@@ -32,13 +32,12 @@ import {
 import RatingModal from "../components/RatingModal";
 import RatingReviewsSection from "../components/RatingReviewsSection";
 import WorkCertificate from "../components/WorkCertificate";
+import storage from "../utils/storage";
 
 function EmployerDashboard() {
   const navigate = useNavigate();
 
-  const employer = JSON.parse(
-    sessionStorage.getItem("employer")
-  );
+  const employer = storage.getEmployer();
 
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -311,10 +310,7 @@ function EmployerDashboard() {
         console.error(error);
 
         if (error.response?.status === 401) {
-          sessionStorage.removeItem("employerToken");
-          sessionStorage.removeItem("employer");
-          localStorage.removeItem("employerToken");
-          localStorage.removeItem("employer");
+          await storage.clearEmployerSession();
 
           toast.error(
             "Session expired. Please login again."
@@ -378,10 +374,7 @@ function EmployerDashboard() {
         console.error(error);
 
         if (error.response?.status === 401) {
-          sessionStorage.removeItem("employerToken");
-          sessionStorage.removeItem("employer");
-          localStorage.removeItem("employerToken");
-          localStorage.removeItem("employer");
+          await storage.clearEmployerSession();
 
           toast.error(
             "Session expired. Please login again."
@@ -517,20 +510,10 @@ function EmployerDashboard() {
   // LOGOUT
   // =================================
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("employerToken");
-    sessionStorage.removeItem("employer");
-    sessionStorage.removeItem("employerWallet");
-    localStorage.removeItem("employerToken");
-    localStorage.removeItem("employer");
-    localStorage.removeItem("employerWallet");
-
+  const handleLogout = async () => {
+    await storage.clearEmployerSession();
     setWalletAddress("");
-
-    toast.success(
-      "Logged out successfully"
-    );
-
+    toast.success("Logged out successfully");
     navigate("/employer-login");
   };
 
@@ -746,25 +729,43 @@ function EmployerDashboard() {
         {/* ================================= */}
 
         <div
-          className="veriwork-card-dark p-4 p-md-5 mb-4 position-relative overflow-hidden"
+          className="veriwork-card-dark p-4 p-md-5 mb-4 position-relative overflow-hidden shadow-lg"
           style={{
             borderRadius: "24px",
+            background: "linear-gradient(135deg, #1A281D 0%, #293E2B 100%)",
+            color: "#FFFFFF",
           }}
         >
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-              <span className="veriwork-pill-badge mb-2 bg-white text-dark border-0">
+              <span
+                className="mb-2 d-inline-block px-3 py-1 fw-bold rounded-pill text-uppercase"
+                style={{
+                  backgroundColor: "#C98A41",
+                  color: "#FFFFFF",
+                  fontSize: "0.78rem",
+                  letterSpacing: "0.06em",
+                }}
+              >
                 EMPLOYER & ISSUER PORTAL
               </span>
-              <h2 className="fw-bold text-white mb-1" style={{ fontFamily: "var(--font-serif)" }}>
+              <h2 className="fw-bold mb-1" style={{ fontFamily: "var(--font-serif)", color: "#FFFFFF", fontSize: "2rem" }}>
                 Welcome, {employer?.employerName || "Employer"} 👋
               </h2>
-              <p className="text-white-50 mb-0">
+              <p className="mb-0" style={{ color: "rgba(255, 255, 255, 0.88)", fontSize: "1rem" }}>
                 Manage domestic workforce contracts, authorize wallet signers, and anchor certificates to Ethereum.
               </p>
             </div>
-            <div className="d-none d-md-block text-end">
-              <span className="veriwork-pill-white">
+            <div className="text-end">
+              <span
+                className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill fw-semibold"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  color: "#FFFFFF",
+                  border: "1px solid rgba(255, 255, 255, 0.25)",
+                  fontSize: "0.85rem",
+                }}
+              >
                 ● AUTHORIZED ISSUER
               </span>
             </div>

@@ -1,149 +1,586 @@
 import { Link } from "react-router-dom";
-import { FaLinkedinIn, FaTwitter, FaInstagram } from "react-icons/fa";
+import {
+  FaLinkedinIn,
+  FaTwitter,
+  FaInstagram,
+  FaArrowUp,
+  FaShieldAlt,
+} from "react-icons/fa";
 
 function Footer() {
   return (
-    <footer className="vw-mockup-footer mt-auto py-5 text-start">
+    <footer className="vw-footer">
       <div className="container">
-        
-        <div className="row g-4 mb-5">
-          
-          {/* Brand Info */}
-          <div className="col-lg-5">
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <svg width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 2C14 2 13 8 7 10C13 12 14 18 14 18C14 18 15 12 21 10C15 8 14 2 14 2Z" fill="#7A8B7B" />
-                <path d="M7 16C7 16 10 18 10 22C10 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
-                <path d="M21 16C21 16 18 18 18 22C18 22 14 19 14 19" stroke="#C98A41" strokeWidth="2" strokeLinecap="round" />
-                <path d="M14 18V26" stroke="#7A8B7B" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <span className="vw-mockup-footer-logo">VeriWork</span>
-            </div>
-            
-            <p className="vw-mockup-footer-desc mb-4 pe-lg-4">
+
+        {/* =========================================
+            MAIN FOOTER
+        ========================================== */}
+
+        <div className="vw-footer-main">
+
+          {/* Brand */}
+          <div className="vw-footer-brand-column">
+
+            <Link to="/" className="vw-footer-brand">
+              <div className="vw-footer-brand-mark">
+                <svg
+                  width="25"
+                  height="25"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M14 2C14 2 13 8 7 10C13 12 14 18 14 18C14 18 15 12 21 10C15 8 14 2 14 2Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M7 16C7 16 10 18 10 22C10 22 14 19 14 19"
+                    stroke="#D4A359"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M21 16C21 16 18 18 18 22C18 22 14 19 14 19"
+                    stroke="#D4A359"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M14 18V26"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+
+              <span>VeriWork</span>
+            </Link>
+
+            <p className="vw-footer-description">
               Verifiable work identity for informal domestic workers.
+              Building trust through secure records, transparent work
+              histories, and verified credentials.
             </p>
 
-            {/* Social Icons */}
-            <div className="d-flex align-items-center gap-3">
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="LinkedIn">
-                <FaLinkedinIn size={14} />
+            {/* Trust indicator */}
+            <div className="vw-footer-trust">
+              <div className="vw-footer-trust-icon">
+                <FaShieldAlt size={12} />
+              </div>
+
+              <div>
+                <strong>Built for Trust</strong>
+                <span>Secure · Verified · Transparent</span>
+              </div>
+            </div>
+
+            {/* Social */}
+            <div className="vw-footer-socials">
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="vw-footer-social"
+                aria-label="LinkedIn"
+              >
+                <FaLinkedinIn size={13} />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="Twitter">
-                <FaTwitter size={14} />
+
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noreferrer"
+                className="vw-footer-social"
+                aria-label="Twitter"
+              >
+                <FaTwitter size={13} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="vw-social-icon" aria-label="Instagram">
-                <FaInstagram size={14} />
+
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="vw-footer-social"
+                aria-label="Instagram"
+              >
+                <FaInstagram size={13} />
               </a>
             </div>
           </div>
 
-          {/* Product Links */}
-          <div className="col-4 col-lg-2">
-            <h6 className="vw-footer-col-header mb-3">Product</h6>
-            <ul className="list-unstyled d-flex flex-column gap-2 small">
+          {/* Product */}
+          <div className="vw-footer-column">
+            <h6>Product</h6>
+
+            <ul>
               <li>
-                <Link to="/" className="vw-footer-col-link">Home</Link>
+                <Link to="/">Home</Link>
               </li>
+
               <li>
-                <Link to="/#features" className="vw-footer-col-link">Features</Link>
+                <Link to="/#features">Features</Link>
               </li>
+
               <li>
-                <Link to="/#how-it-works" className="vw-footer-col-link">How It Works</Link>
+                <Link to="/#how-it-works">How It Works</Link>
               </li>
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div className="col-4 col-lg-2">
-            <h6 className="vw-footer-col-header mb-3">Company</h6>
-            <ul className="list-unstyled d-flex flex-column gap-2 small">
+          {/* Company */}
+          <div className="vw-footer-column">
+            <h6>Company</h6>
+
+            <ul>
               <li>
-                <Link to="/about" className="vw-footer-col-link">About</Link>
+                <Link to="/about">About</Link>
               </li>
+
               <li>
-                <Link to="/about" className="vw-footer-col-link">Contact</Link>
+                <Link to="/about">Contact</Link>
               </li>
             </ul>
           </div>
 
-          {/* Legal Links */}
-          <div className="col-4 col-lg-3">
-            <h6 className="vw-footer-col-header mb-3">Legal</h6>
-            <ul className="list-unstyled d-flex flex-column gap-2 small">
+          {/* Legal */}
+          <div className="vw-footer-column">
+            <h6>Legal</h6>
+
+            <ul>
               <li>
-                <Link to="/about" className="vw-footer-col-link">Privacy Policy</Link>
+                <Link to="/about">Privacy Policy</Link>
               </li>
+
               <li>
-                <Link to="/about" className="vw-footer-col-link">Terms of Service</Link>
+                <Link to="/about">Terms of Service</Link>
               </li>
             </ul>
           </div>
-
         </div>
 
-        {/* Bottom Copyright */}
-        <div className="pt-4 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
-          <div>
+        {/* =========================================
+            DIVIDER
+        ========================================== */}
+
+        <div className="vw-footer-divider"></div>
+
+        {/* =========================================
+            BOTTOM BAR
+        ========================================== */}
+
+        <div className="vw-footer-bottom">
+
+          <div className="vw-footer-copyright">
             © 2026 VeriWork. All rights reserved.
           </div>
-          <div>
-            Developed by <strong>A. Jayadithiyaa (25BCE5375)</strong>
-          </div>
-        </div>
 
+          <div className="vw-footer-developer">
+            Developed by{" "}
+            <strong>A. Jayadithiyaa (25BCE5375)</strong>
+          </div>
+
+          <Link
+            to="/"
+            className="vw-footer-top"
+            aria-label="Back to home"
+          >
+            <FaArrowUp size={11} />
+          </Link>
+
+        </div>
       </div>
 
       <style>{`
-        .vw-mockup-footer {
-          background-color: var(--color-forest-dark, #1A281D);
-          color: #E2DDD5;
+        /* =========================================
+           FOOTER
+        ========================================== */
+
+        .vw-footer {
+          position: relative;
+          overflow: hidden;
+          margin-top: auto;
+          color: #e8e3db;
+          background:
+            radial-gradient(
+              circle at 8% 0%,
+              rgba(212, 163, 89, 0.08),
+              transparent 28%
+            ),
+            radial-gradient(
+              circle at 92% 100%,
+              rgba(255, 255, 255, 0.035),
+              transparent 28%
+            ),
+            #1d3026;
         }
 
-        .vw-mockup-footer-logo {
-          font-family: var(--font-serif);
-          font-weight: 700;
-          font-size: 1.5rem;
-          color: #FFFFFF;
+        .vw-footer::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(212, 163, 89, 0.45),
+            transparent
+          );
         }
 
-        .vw-mockup-footer-desc {
-          color: #9EAA9F;
-          font-size: 0.95rem;
-          max-width: 320px;
+        .vw-footer .container {
+          position: relative;
+          z-index: 2;
         }
 
-        .vw-social-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background-color: rgba(255, 255, 255, 0.08);
-          color: #E2DDD5;
+        /* =========================================
+           MAIN AREA
+        ========================================== */
+
+        .vw-footer-main {
+          display: grid;
+          grid-template-columns:
+            minmax(280px, 2.3fr)
+            repeat(3, minmax(100px, 0.75fr));
+          gap: 55px;
+          padding: 68px 0 54px;
+        }
+
+        /* =========================================
+           BRAND
+        ========================================== */
+
+        .vw-footer-brand-column {
+          max-width: 410px;
+        }
+
+        .vw-footer-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          color: #ffffff !important;
+          text-decoration: none;
+        }
+
+        .vw-footer-brand-mark {
+          width: 38px;
+          height: 38px;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: background-color 0.2s ease, color 0.2s ease;
+          border-radius: 12px;
+          color: #dce7dc;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .vw-social-icon:hover {
-          background-color: var(--color-ochre);
-          color: #FFFFFF;
-        }
-
-        .vw-footer-col-header {
-          font-size: 0.95rem;
+        .vw-footer-brand > span {
+          color: #ffffff !important;
+          font-family: var(--font-serif, Georgia, serif);
+          font-size: 1.5rem;
           font-weight: 700;
-          color: #FFFFFF;
+          letter-spacing: -0.025em;
         }
 
-        .vw-footer-col-link {
-          color: #9EAA9F;
+        .vw-footer-description {
+          max-width: 365px;
+          margin: 17px 0 21px;
+          color: #aebbb0 !important;
+          font-size: 0.82rem;
+          line-height: 1.7;
+        }
+
+        /* =========================================
+           TRUST
+        ========================================== */
+
+        .vw-footer-trust {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          margin-bottom: 22px;
+        }
+
+        .vw-footer-trust-icon {
+          width: 29px;
+          height: 29px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9px;
+          color: #d4a359;
+          background: rgba(212, 163, 89, 0.1);
+          border: 1px solid rgba(212, 163, 89, 0.12);
+        }
+
+        .vw-footer-trust strong {
+          display: block;
+          color: #e9eee9 !important;
+          font-size: 0.67rem;
+          font-weight: 700;
+        }
+
+        .vw-footer-trust span {
+          display: block;
+          margin-top: 2px;
+          color: #89998c !important;
+          font-size: 0.56rem;
+          letter-spacing: 0.04em;
+        }
+
+        /* =========================================
+           SOCIAL
+        ========================================== */
+
+        .vw-footer-socials {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .vw-footer-social {
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          color: #aebbb0 !important;
+          background: rgba(255, 255, 255, 0.055);
+          border: 1px solid rgba(255, 255, 255, 0.07);
           text-decoration: none;
-          transition: color 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            color 0.2s ease;
         }
 
-        .vw-footer-col-link:hover {
-          color: #FFFFFF;
+        .vw-footer-social svg {
+          color: inherit !important;
+        }
+
+        .vw-footer-social:hover {
+          color: #ffffff !important;
+          background: var(--color-ochre, #d4a359);
+          border-color: var(--color-ochre, #d4a359);
+          transform: translateY(-2px);
+        }
+
+        /* =========================================
+           FOOTER COLUMNS
+        ========================================== */
+
+        .vw-footer-column {
+          padding-top: 4px;
+        }
+
+        .vw-footer-column h6 {
+          margin: 0 0 18px;
+          color: #ffffff !important;
+          font-family: var(--font-sans);
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
+        }
+
+        .vw-footer-column ul {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .vw-footer-column li {
+          margin: 0;
+          padding: 0;
+        }
+
+        .vw-footer-column a {
+          display: inline-block;
+          color: #94a398 !important;
+          text-decoration: none;
+          font-size: 0.77rem;
+          line-height: 1.4;
+          transition:
+            color 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .vw-footer-column a:hover {
+          color: #ffffff !important;
+          transform: translateX(3px);
+        }
+
+        /* =========================================
+           DIVIDER
+        ========================================== */
+
+        .vw-footer-divider {
+          height: 1px;
+          background: rgba(255, 255, 255, 0.09);
+        }
+
+        /* =========================================
+           BOTTOM
+        ========================================== */
+
+        .vw-footer-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          min-height: 67px;
+          padding: 14px 0;
+        }
+
+        .vw-footer-copyright,
+        .vw-footer-developer {
+          color: #77887b !important;
+          font-size: 0.63rem;
+          line-height: 1.5;
+        }
+
+        .vw-footer-developer {
+          text-align: center;
+        }
+
+        .vw-footer-developer strong {
+          color: #a9b6aa !important;
+          font-weight: 700;
+        }
+
+        .vw-footer-top {
+          width: 31px;
+          height: 31px;
+          flex: 0 0 31px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          color: #b7c3b9 !important;
+          background: rgba(255, 255, 255, 0.055);
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          text-decoration: none;
+          transition:
+            transform 0.2s ease,
+            color 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .vw-footer-top svg {
+          color: inherit !important;
+        }
+
+        .vw-footer-top:hover {
+          color: #ffffff !important;
+          background: var(--color-ochre, #d4a359);
+          transform: translateY(-2px);
+        }
+
+        /* =========================================
+           LARGE TABLET
+        ========================================== */
+
+        @media (max-width: 991.98px) {
+          .vw-footer-main {
+            grid-template-columns:
+              minmax(250px, 2fr)
+              repeat(3, 1fr);
+            gap: 30px;
+            padding: 55px 0 45px;
+          }
+
+          .vw-footer-description {
+            max-width: 320px;
+          }
+        }
+
+        /* =========================================
+           TABLET / MOBILE
+        ========================================== */
+
+        @media (max-width: 767.98px) {
+          .vw-footer-main {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px 25px;
+            padding: 48px 0 40px;
+          }
+
+          .vw-footer-brand-column {
+            grid-column: 1 / -1;
+            max-width: 500px;
+          }
+
+          .vw-footer-bottom {
+            flex-wrap: wrap;
+            justify-content: space-between;
+          }
+
+          .vw-footer-developer {
+            order: 3;
+            width: 100%;
+            text-align: left;
+          }
+        }
+
+        /* =========================================
+           SMALL MOBILE
+        ========================================== */
+
+        @media (max-width: 480px) {
+          .vw-footer-main {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px 20px;
+            padding: 42px 0 34px;
+          }
+
+          .vw-footer-brand > span {
+            font-size: 1.35rem;
+          }
+
+          .vw-footer-description {
+            font-size: 0.76rem;
+          }
+
+          .vw-footer-column h6 {
+            margin-bottom: 14px;
+            font-size: 0.65rem;
+          }
+
+          .vw-footer-column a {
+            font-size: 0.72rem;
+          }
+
+          .vw-footer-bottom {
+            align-items: flex-start;
+          }
+
+          .vw-footer-copyright {
+            max-width: 200px;
+          }
+
+          .vw-footer-developer {
+            font-size: 0.58rem;
+          }
+        }
+
+        /* =========================================
+           REDUCED MOTION
+        ========================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+          .vw-footer-social,
+          .vw-footer-column a,
+          .vw-footer-top {
+            transition: none !important;
+          }
         }
       `}</style>
     </footer>
