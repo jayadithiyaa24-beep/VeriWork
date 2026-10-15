@@ -121,37 +121,31 @@ function EmployerDashboard() {
           method: "eth_chainId",
         });
 
-      // Hardhat local network = 31337
-      const hardhatChainId = "0x7a69";
+      // Ethereum Sepolia testnet (chain ID 11155111 / 0xaa36a7)
+      const sepoliaChainId = "0xaa36a7";
 
-      if (chainId !== hardhatChainId) {
+      if (chainId !== sepoliaChainId) {
         try {
-          // Try switching to Hardhat network
           await window.ethereum.request({
             method: "wallet_switchEthereumChain",
-            params: [
-              {
-                chainId: hardhatChainId,
-              },
-            ],
+            params: [{ chainId: sepoliaChainId }],
           });
         } catch (switchError) {
-          // Error 4902 = network does not exist
+          // Error 4902 means Sepolia is not yet added to MetaMask.
           if (switchError.code === 4902) {
             await window.ethereum.request({
               method: "wallet_addEthereumChain",
               params: [
                 {
-                  chainId: hardhatChainId,
-                  chainName: "VeriWork Local",
+                  chainId: sepoliaChainId,
+                  chainName: "Ethereum Sepolia",
                   nativeCurrency: {
-                    name: "Ether",
+                    name: "Sepolia Ether",
                     symbol: "ETH",
                     decimals: 18,
                   },
-                  rpcUrls: [
-                    "http://127.0.0.1:8545",
-                  ],
+                  rpcUrls: ["https://rpc.sepolia.org"],
+                  blockExplorerUrls: ["https://sepolia.etherscan.io"],
                 },
               ],
             });
@@ -159,6 +153,14 @@ function EmployerDashboard() {
             throw switchError;
           }
         }
+      }
+
+      // Verify the wallet actually switched before continuing.
+      const confirmedChainId = await window.ethereum.request({
+        method: "eth_chainId",
+      });
+      if (confirmedChainId !== sepoliaChainId) {
+        throw new Error("Please switch MetaMask to Ethereum Sepolia and try again.");
       }
 
       // Save connected wallet
@@ -198,7 +200,7 @@ function EmployerDashboard() {
       } else {
         toast.error(
           error.message ||
-            "Failed to connect MetaMask."
+          "Failed to connect MetaMask."
         );
       }
     } finally {
@@ -325,7 +327,7 @@ function EmployerDashboard() {
 
         toast.error(
           error.response?.data?.message ||
-            "Unable to load employment records"
+          "Unable to load employment records"
         );
       } finally {
         setLoadingRecords(false);
@@ -389,7 +391,7 @@ function EmployerDashboard() {
 
         toast.error(
           error.response?.data?.message ||
-            "Unable to load certificates"
+          "Unable to load certificates"
         );
       } finally {
         setLoadingCertificates(false);
@@ -447,7 +449,7 @@ function EmployerDashboard() {
 
       toast.error(
         error.response?.data?.message ||
-          "Failed to create employment record"
+        "Failed to create employment record"
       );
     } finally {
       setLoading(false);
@@ -473,7 +475,7 @@ function EmployerDashboard() {
 
       toast.success(
         response.message ||
-          "Work Certificate Created Successfully"
+        "Work Certificate Created Successfully"
       );
 
       setCertificates([
@@ -485,7 +487,7 @@ function EmployerDashboard() {
 
       toast.error(
         error.response?.data?.message ||
-          "Failed to generate work certificate"
+        "Failed to generate work certificate"
       );
     } finally {
       setGeneratingCertificate(null);
@@ -502,9 +504,9 @@ function EmployerDashboard() {
     return certificates.find(
       (certificate) =>
         certificate.employmentId?._id ===
-          employmentId ||
+        employmentId ||
         certificate.employmentId ===
-          employmentId
+        employmentId
     );
   };
 
@@ -756,9 +758,9 @@ function EmployerDashboard() {
           errorMsg.includes("execution reverted"))
       ) {
         if (errorMsg.includes("Unauthorized") || errorMsg.includes("only authorized")) {
-          errorMsg = "Unauthorized wallet: Your wallet is not yet authorized on the smart contract. Please ensure your local Hardhat node is running (npx hardhat node).";
+          errorMsg = "Unauthorized wallet: this wallet is not authorized to register certificates on the deployed Sepolia contract. The contract owner must authorize it first.";
         } else {
-          errorMsg = "Blockchain connection error: Unable to complete on-chain transaction. Please verify that your local Hardhat node is running at http://127.0.0.1:8545.";
+          errorMsg = "Blockchain connection error: unable to complete the transaction on Ethereum Sepolia. Check MetaMask's network, wallet balance, and the browser console for details.";
         }
       }
 
@@ -942,7 +944,7 @@ function EmployerDashboard() {
                 </div>
 
                 <div className="small text-success mt-2">
-                  ✓ Connected to local blockchain
+                  ✓ Connected to Ethereum Sepolia testnet
                 </div>
 
               </div>
@@ -979,8 +981,8 @@ function EmployerDashboard() {
                 to={
                   certificates.length > 0 && certificates[0]?.certificateId
                     ? `/verify-certificate?id=${encodeURIComponent(
-                        certificates[0].certificateId
-                      )}`
+                      certificates[0].certificateId
+                    )}`
                     : "/verify-certificate"
                 }
                 className="btn btn-warning fw-semibold d-inline-flex align-items-center gap-2"
@@ -1385,7 +1387,7 @@ function EmployerDashboard() {
                                     <span
                                       className={
                                         certificate.verificationStatus ===
-                                        "Verified"
+                                          "Verified"
                                           ? "badge bg-success"
                                           : "badge bg-warning text-dark"
                                       }
@@ -1446,7 +1448,7 @@ function EmployerDashboard() {
                                       }
                                     >
                                       {registeringBlockchain ===
-                                      certificate.certificateId ? (
+                                        certificate.certificateId ? (
                                         <>
                                           <span
                                             className="spinner-border spinner-border-sm me-1"
@@ -1478,7 +1480,7 @@ function EmployerDashboard() {
                                 >
 
                                   {generatingCertificate ===
-                                  employment._id ? (
+                                    employment._id ? (
                                     <>
                                       <span
                                         className="spinner-border spinner-border-sm me-1"
