@@ -15,6 +15,7 @@ import {
   getCertificateHash,
   confirmBlockchainRegistration,
   syncCertificateWithBlockchain,
+  registerCertificateDirectOnBlockchain,
 } from "../services/certificateService";
 
 import {
@@ -585,57 +586,122 @@ function EmployerDashboard() {
   // =================================
 
   const handleRegisterOnBlockchain = async (certificate) => {
-    if (!walletAddress) {
-      toast.warn("Please connect your MetaMask wallet first.");
-      return;
-    }
-
     setRegisteringBlockchain(certificate.certificateId);
 
     try {
-      toast.info("Retrieving certificate cryptographic hash...");
+      // 1. If MetaMask is connected, try MetaMask flow first
+      if (walletAddress && window.ethereum) {
+        toast.info("Preparing certificate hash for blockchain registration...");
 
-      let hashToRegister = certificate.blockchainHash;
-      if (!hashToRegister) {
-        const hashRes = await getCertificateHash(certificate.certificateId);
-        hashToRegister = hashRes.certificateHash;
+        let hashToRegister = certificate.blockchainHash;
+        if (!hashToRegister) {
+          const hashRes = await getCertificateHash(certificate.certificateId);
+          hashToRegister = hashRes.certificateHash;
+        }
+
+        // Try authorizing employer wallet as issuer on-chain
+        try {
+          await authorizeEmployerWallet(walletAddress);
+        } catch (authErr) {
+          console.warn("Pre-register authorization warning:", authErr);
+        }
+
+        try {
+          toast.info("Opening MetaMask... Please approve the transaction.");
+
+          const txResult = await registerCertificateWithMetaMask({
+            certificateId: certificate.certificateId,
+            certificateHash: hashToRegister,
+          });
+
+          toast.info("Transaction confirmed on blockchain. Syncing with VeriWork...");
+
+          const confirmResponse = await confirmBlockchainRegistration(
+            certificate.certificateId,
+            txResult.transactionHash
+          );
+
+          toast.success(
+            confirmResponse.message || "Certificate registered and verified on blockchain!"
+          );
+
+          setCertificates((prev) =>
+            prev.map((c) =>
+              c.certificateId === certificate.certificateId
+                ? confirmResponse.certificate
+                : c
+            )
+          );
+
+          const targetEmpId =
+            certificate.employmentId?._id || certificate.employmentId;
+          setEmployments((prev) =>
+            prev.map((emp) =>
+              emp._id === targetEmpId
+                ? { ...emp, verificationStatus: "Verified" }
+                : emp
+            )
+          );
+          return;
+        } catch (mmErr) {
+          console.warn("MetaMask transaction error:", mmErr);
+
+          if (mmErr.code === 4001 || mmErr.message?.includes("rejected")) {
+            toast.error("MetaMask transaction was cancelled by user.");
+            return;
+          }
+
+          const isAlreadyRegistered =
+            mmErr.message?.includes("already registered") ||
+            mmErr.reason?.includes("already registered") ||
+            mmErr.data?.includes("Certificate already registered");
+
+          if (isAlreadyRegistered) {
+            toast.info("Certificate is already registered on blockchain! Synchronizing state...");
+            try {
+              const syncRes = await syncCertificateWithBlockchain(certificate.certificateId);
+              toast.success("Certificate synchronized and verified successfully! ✓");
+
+              setCertificates((prev) =>
+                prev.map((c) =>
+                  c.certificateId === certificate.certificateId ? syncRes.certificate : c
+                )
+              );
+
+              const targetEmpId = certificate.employmentId?._id || certificate.employmentId;
+              setEmployments((prev) =>
+                prev.map((emp) =>
+                  emp._id === targetEmpId ? { ...emp, verificationStatus: "Verified" } : emp
+                )
+              );
+              return;
+            } catch (syncErr) {
+              console.error("Auto-sync error:", syncErr);
+            }
+          }
+
+          toast.info("MetaMask registration encountered a wallet/network issue. Anchoring directly via smart contract...");
+        }
       }
 
-      // Ensure connected wallet is registered as authorized issuer on the smart contract
-      try {
-        await authorizeEmployerWallet(walletAddress);
-      } catch (authErr) {
-        console.warn("Pre-register authorization warning:", authErr);
-      }
-
-      toast.info("Opening MetaMask... Please approve the transaction.");
-
-      const txResult = await registerCertificateWithMetaMask({
-        certificateId: certificate.certificateId,
-        certificateHash: hashToRegister,
-      });
-
-      toast.info("Transaction confirmed on blockchain. Syncing with VeriWork...");
-
-      const confirmResponse = await confirmBlockchainRegistration(
-        certificate.certificateId,
-        txResult.transactionHash
+      // 2. Direct blockchain registration via smart contract owner signer
+      toast.info("Anchoring certificate to Ethereum blockchain...");
+      const directResponse = await registerCertificateDirectOnBlockchain(
+        certificate.certificateId
       );
 
       toast.success(
-        confirmResponse.message || "Certificate registered and verified on blockchain!"
+        directResponse.message || "Certificate registered and verified on blockchain! ✓"
       );
 
-      // Update certificate in state
       setCertificates((prev) =>
         prev.map((c) =>
           c.certificateId === certificate.certificateId
-            ? confirmResponse.certificate
+            ? directResponse.certificate
             : c
         )
       );
 
-      // Also update verification status in employment list
       const targetEmpId =
         certificate.employmentId?._id || certificate.employmentId;
       setEmployments((prev) =>
@@ -650,8 +716,7 @@ function EmployerDashboard() {
 
       const isAlreadyRegistered =
         error.message?.includes("already registered") ||
-        error.reason?.includes("already registered") ||
-        error.data?.includes("Certificate already registered");
+        error.response?.data?.message?.includes("already registered");
 
       if (isAlreadyRegistered) {
         toast.info("Certificate is already registered on blockchain! Synchronizing state...");
@@ -677,15 +742,27 @@ function EmployerDashboard() {
         }
       }
 
-      if (error.code === 4001 || error.message?.includes("rejected")) {
-        toast.error("MetaMask transaction was cancelled by user.");
-      } else {
-        toast.error(
-          error.response?.data?.message ||
-            error.message ||
-            "Failed to register certificate on blockchain."
-        );
+      let errorMsg =
+        error.response?.data?.message ||
+        error.reason ||
+        error.message ||
+        "Failed to register certificate on blockchain.";
+
+      if (
+        typeof errorMsg === "string" &&
+        (errorMsg.includes("0x") ||
+          errorMsg.includes("CALL_EXCEPTION") ||
+          errorMsg.includes("missing revert data") ||
+          errorMsg.includes("execution reverted"))
+      ) {
+        if (errorMsg.includes("Unauthorized") || errorMsg.includes("only authorized")) {
+          errorMsg = "Unauthorized wallet: Your wallet is not yet authorized on the smart contract. Please ensure your local Hardhat node is running (npx hardhat node).";
+        } else {
+          errorMsg = "Blockchain connection error: Unable to complete on-chain transaction. Please verify that your local Hardhat node is running at http://127.0.0.1:8545.";
+        }
       }
+
+      toast.error(errorMsg);
     } finally {
       setRegisteringBlockchain(null);
     }

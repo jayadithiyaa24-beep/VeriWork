@@ -169,3 +169,26 @@ export const syncCertificateWithBlockchain = async (
 
   return response.data;
 };
+
+
+// =================================
+// REGISTER CERTIFICATE DIRECT ON BLOCKCHAIN
+// =================================
+
+export const registerCertificateDirectOnBlockchain = async (
+  certificateId
+) => {
+  const token = sessionStorage.getItem("employerToken");
+
+  const response = await api.post(
+    `/certificates/register-blockchain/${encodeURIComponent(certificateId)}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};
