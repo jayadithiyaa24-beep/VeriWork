@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import {
   FaUser,
   FaLock,
-  FaGoogle,
   FaArrowRight,
   FaShieldAlt,
   FaCheck,
@@ -558,95 +557,6 @@ function Login() {
 
           background:
             rgba(255, 255, 255, 0.16);
-        }
-
-
-        /* =========================================
-           DIVIDER
-        ========================================= */
-
-        .vw-worker-login-divider {
-          display: flex;
-
-          align-items: center;
-
-          gap: 12px;
-
-          margin: 25px 0 17px;
-        }
-
-        .vw-worker-login-divider::before,
-        .vw-worker-login-divider::after {
-          content: "";
-
-          flex: 1;
-
-          height: 1px;
-
-          background:
-            rgba(43, 38, 37, 0.10);
-        }
-
-        .vw-worker-login-divider span {
-          color: #948D84 !important;
-
-          font-size: 0.68rem;
-
-          font-weight: 700;
-
-          text-transform: uppercase;
-
-          letter-spacing: 0.10em;
-        }
-
-
-        /* =========================================
-           GOOGLE BUTTON
-        ========================================= */
-
-        .vw-worker-google {
-          width: 100%;
-
-          min-height: 48px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content: center;
-
-          gap: 10px;
-
-          border: 1px solid rgba(43, 38, 37, 0.11);
-
-          border-radius: 14px;
-
-          background: rgba(255, 255, 255, 0.72);
-
-          color: var(--color-text, #2B2625) !important;
-
-          font-size: 0.78rem;
-
-          font-weight: 750;
-
-          transition: 0.2s ease;
-        }
-
-        .vw-worker-google:hover {
-          transform: translateY(-1px);
-
-          background: #FFFFFF;
-
-          border-color:
-            rgba(43, 38, 37, 0.17);
-        }
-
-        .vw-worker-google span {
-          color: var(--color-text, #2B2625) !important;
-        }
-
-        .vw-worker-google svg {
-          color: #DB4437 !important;
         }
 
 
@@ -1357,37 +1267,6 @@ function Login() {
 
                         </button>
 
-
-                        {/* DIVIDER */}
-
-                        <div className="vw-worker-login-divider">
-
-                          <span>
-                            or
-                          </span>
-
-                        </div>
-
-
-                        {/* GOOGLE */}
-
-                        <button
-                          type="button"
-                          className="vw-worker-google"
-                          onClick={() =>
-                            toast.info(
-                              "Google OAuth is available on enterprise deployment."
-                            )
-                          }
-                        >
-
-                          <FaGoogle size={14} />
-
-                          <span>
-                            Continue with Google
-                          </span>
-
-                        </button>
 
                       </form>
 

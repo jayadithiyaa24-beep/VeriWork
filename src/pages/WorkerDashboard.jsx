@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import {
@@ -1005,33 +1005,27 @@ function WorkerDashboard() {
                 public ledger.
               </p>
 
-              {certificates.length > 0 ? (
+              {certificates.length > 0 && certificates[0]?.certificateId ? (
 
-                <a
-                  href={`/verify-certificate?id=${encodeURIComponent(
+                <Link
+                  to={`/verify-certificate?id=${encodeURIComponent(
                     certificates[0].certificateId
                   )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="vw-service-button ochre"
                 >
                   Verify on Blockchain
                   <FaExternalLinkAlt />
-                </a>
+                </Link>
 
               ) : (
 
-                <button
+                <Link
+                  to="/verify-certificate"
                   className="vw-service-button ochre"
-                  onClick={() =>
-                    navigate(
-                      "/verify-certificate"
-                    )
-                  }
                 >
-                  Open Verification Portal
-                  <FaArrowRight />
-                </button>
+                  Verify on Blockchain
+                  <FaExternalLinkAlt />
+                </Link>
 
               )}
 
@@ -1590,18 +1584,16 @@ function CertificateCard({
           View & Download PDF Certificate
         </button>
 
-        <a
-          href={`/verify-certificate?id=${encodeURIComponent(
+        <Link
+          to={`/verify-certificate?id=${encodeURIComponent(
             certificate.certificateId
           )}`}
-          target="_blank"
-          rel="noopener noreferrer"
           className="vw-certificate-secondary"
         >
           <FaShieldAlt />
           Public Blockchain Verification
           <FaExternalLinkAlt />
-        </a>
+        </Link>
 
       </div>
 

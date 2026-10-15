@@ -1203,10 +1203,10 @@ function VerifyCertificate() {
 
           {error && (
             <div className="vw-verify-error no-print">
-              <div className="fs-4">!</div>
+              <div className="fs-4">✕</div>
 
               <div>
-                <strong>Verification Failed</strong>
+                <strong>Status: Invalid / Not Found</strong>
 
                 <div className="mt-1">
                   {error}
@@ -1237,19 +1237,46 @@ function VerifyCertificate() {
                   {verified ? "✓" : "⏳"}
                 </div>
 
+                <div className="mb-2">
+                  <span
+                    className={`badge px-3 py-2 text-uppercase fw-bold ${
+                      verified
+                        ? "bg-success"
+                        : !hashMatches
+                        ? "bg-danger"
+                        : "bg-warning text-dark"
+                    }`}
+                    style={{ fontSize: "0.8rem", letterSpacing: "0.06em" }}
+                  >
+                    {verified
+                      ? "Status: Verified (On-Chain)"
+                      : !hashMatches
+                      ? "Status: Invalid (Hash Mismatch)"
+                      : "Status: Pending Blockchain Registration"}
+                  </span>
+                </div>
+
                 <h2 className="vw-status-title">
                   {verified
                     ? "Authentic & Blockchain Verified"
-                    : "Certificate Found — Pending Blockchain Registration"}
+                    : !hashMatches
+                    ? "Tamper Alert — Cryptographic Hash Mismatch"
+                    : "Certificate Found in Database — Pending Blockchain Registration"}
                 </h2>
 
                 <p className="vw-status-description">
                   {verified
                     ? "This digital work credential is authentic, valid, and cryptographically anchored into the Ethereum / EVM blockchain smart contract. The cryptographic digest matches the smart contract storage with 100% fidelity."
-                    : "This work certificate exists in the VeriWork database, but its blockchain registration transaction is still pending final confirmation by the employer."}
+                    : !hashMatches
+                    ? "Warning: The deterministic SHA-256 fingerprint generated from certificate data does not match the registered hash. Certificate data may have been altered."
+                    : "This work certificate exists and is authentic in the VeriWork database, but its blockchain registration transaction is still pending final confirmation by the employer's Web3 wallet."}
                 </p>
 
                 <div className="vw-security-pills">
+
+                  <span className="vw-security-pill">
+                    ✓ VeriWork Database Record Verified
+                  </span>
 
                   <span
                     className={`vw-security-pill ${hashMatches ? "" : "danger"
@@ -1689,6 +1716,53 @@ function VerifyCertificate() {
                       {certificate.blockchainTransactionHash ||
                         "Pending blockchain submission"}
                     </div>
+
+                    {certificate.blockchainTransactionHash ? (
+                      (import.meta.env.VITE_BLOCKCHAIN_EXPLORER_URL || import.meta.env.VITE_EXPLORER_URL) ? (
+                        <div style={{ marginTop: "8px" }}>
+                          <a
+                            href={`${(import.meta.env.VITE_BLOCKCHAIN_EXPLORER_URL || import.meta.env.VITE_EXPLORER_URL).replace(/\/$/, "")}/${certificate.blockchainTransactionHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "0.78rem",
+                              fontWeight: "600",
+                              color: "var(--color-forest, #3F5547)",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            View on Block Explorer ↗
+                          </a>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            fontSize: "0.75rem",
+                            color: "var(--color-text-muted, #756F68)",
+                            background: "rgba(63, 85, 71, 0.05)",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                          }}
+                        >
+                          <strong>Network:</strong> VeriWork Local Blockchain (Hardhat / Chain ID: 31337, RPC: 127.0.0.1:8545).
+                          <em> Note: Local Hardhat development chains do not have an external public block explorer.</em>
+                        </div>
+                      )
+                    ) : (
+                      <div
+                        style={{
+                          marginTop: "6px",
+                          fontSize: "0.75rem",
+                          color: "#b45309",
+                        }}
+                      >
+                        ℹ️ Database record verified. On-chain transaction has not yet been submitted by the issuer.
+                      </div>
+                    )}
 
                   </div>
 

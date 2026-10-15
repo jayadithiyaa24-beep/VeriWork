@@ -115,7 +115,22 @@ function App() {
             />
 
             <Route
+              path="/verify"
+              element={<VerifyCertificate />}
+            />
+
+            <Route
               path="/verify/:certificateId"
+              element={<VerifyCertificate />}
+            />
+
+            <Route
+              path="/verify-blockchain"
+              element={<VerifyCertificate />}
+            />
+
+            <Route
+              path="/blockchain-verification"
               element={<VerifyCertificate />}
             />
 

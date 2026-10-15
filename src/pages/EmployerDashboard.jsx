@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaExternalLinkAlt } from "react-icons/fa";
 
 import {
   createEmployment,
@@ -876,6 +877,53 @@ function EmployerDashboard() {
         </div>
 
         {/* ================================= */}
+        {/* BLOCKCHAIN VERIFICATION */}
+        {/* ================================= */}
+
+        <div className="card border-0 shadow-sm mb-4">
+
+          <div className="card-body p-4">
+
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+              <div>
+
+                <h3 className="fw-bold mb-1">
+                  🔗 Blockchain Verification
+                </h3>
+
+                <p className="text-muted mb-0">
+                  Independently verify your authentic work credentials on the decentralized public ledger.
+                </p>
+
+              </div>
+
+              <Link
+                to={
+                  certificates.length > 0 && certificates[0]?.certificateId
+                    ? `/verify-certificate?id=${encodeURIComponent(
+                        certificates[0].certificateId
+                      )}`
+                    : "/verify-certificate"
+                }
+                className="btn btn-warning fw-semibold d-inline-flex align-items-center gap-2"
+                style={{
+                  backgroundColor: "#C98A41",
+                  borderColor: "#C98A41",
+                  color: "#FFFFFF",
+                }}
+              >
+                <span>Verify on Blockchain</span>
+                <FaExternalLinkAlt size={12} />
+              </Link>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ================================= */}
         {/* EMPLOYER PROFILE */}
         {/* ================================= */}
 
@@ -1282,17 +1330,15 @@ function EmployerDashboard() {
                                       <div className="small text-success mt-1 fw-bold">
                                         ✓ On Blockchain
                                       </div>
-                                      <a
-                                        href={`/verify-certificate?id=${encodeURIComponent(
+                                      <Link
+                                        to={`/verify-certificate?id=${encodeURIComponent(
                                           certificate.certificateId
                                         )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                         className="btn btn-sm btn-outline-info mt-1 w-100"
                                         style={{ fontSize: "0.75rem", padding: "2px 8px" }}
                                       >
                                         🔍 View Public Proof
-                                      </a>
+                                      </Link>
                                       <button
                                         type="button"
                                         className="btn btn-sm btn-outline-success mt-1 w-100 fw-semibold"
