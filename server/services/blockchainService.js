@@ -1,18 +1,11 @@
+
 const { ethers } = require("ethers");
 
 const CONTRACT_ABI = [
   {
     inputs: [
-      {
-        internalType: "string",
-        name: "certificateId",
-        type: "string",
-      },
-      {
-        internalType: "bytes32",
-        name: "certificateHash",
-        type: "bytes32",
-      },
+      { internalType: "string", name: "certificateId", type: "string" },
+      { internalType: "bytes32", name: "certificateHash", type: "bytes32" },
     ],
     name: "registerCertificate",
     outputs: [],
@@ -21,74 +14,32 @@ const CONTRACT_ABI = [
   },
   {
     inputs: [
-      {
-        internalType: "string",
-        name: "certificateId",
-        type: "string",
-      },
-      {
-        internalType: "bytes32",
-        name: "certificateHash",
-        type: "bytes32",
-      },
+      { internalType: "string", name: "certificateId", type: "string" },
+      { internalType: "bytes32", name: "certificateHash", type: "bytes32" },
     ],
     name: "verifyCertificate",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      {
-        internalType: "string",
-        name: "certificateId",
-        type: "string",
-      },
+      { internalType: "string", name: "certificateId", type: "string" },
     ],
     name: "getCertificate",
     outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
+      { internalType: "string", name: "", type: "string" },
+      { internalType: "bytes32", name: "", type: "bytes32" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "bool", name: "", type: "bool" },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      {
-        internalType: "address",
-        name: "issuer",
-        type: "address",
-      },
+      { internalType: "address", name: "issuer", type: "address" },
     ],
     name: "addIssuer",
     outputs: [],
@@ -97,11 +48,7 @@ const CONTRACT_ABI = [
   },
   {
     inputs: [
-      {
-        internalType: "address",
-        name: "issuer",
-        type: "address",
-      },
+      { internalType: "address", name: "issuer", type: "address" },
     ],
     name: "removeIssuer",
     outputs: [],
@@ -110,33 +57,17 @@ const CONTRACT_ABI = [
   },
   {
     inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
+      { internalType: "address", name: "account", type: "address" },
     ],
     name: "isIssuer",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [],
     name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
@@ -144,31 +75,22 @@ const CONTRACT_ABI = [
 
 const getProvider = () => {
   if (!process.env.BLOCKCHAIN_RPC_URL) {
-    throw new Error(
-      "BLOCKCHAIN_RPC_URL is not configured"
-    );
+    throw new Error("BLOCKCHAIN_RPC_URL is not configured");
   }
 
-  return new ethers.JsonRpcProvider(
-    process.env.BLOCKCHAIN_RPC_URL
-  );
+  return new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
 };
 
 const getContract = () => {
   if (!process.env.BLOCKCHAIN_PRIVATE_KEY) {
-    throw new Error(
-      "BLOCKCHAIN_PRIVATE_KEY is not configured"
-    );
+    throw new Error("BLOCKCHAIN_PRIVATE_KEY is not configured");
   }
 
   if (!process.env.BLOCKCHAIN_CONTRACT_ADDRESS) {
-    throw new Error(
-      "BLOCKCHAIN_CONTRACT_ADDRESS is not configured"
-    );
+    throw new Error("BLOCKCHAIN_CONTRACT_ADDRESS is not configured");
   }
 
   const provider = getProvider();
-
   const wallet = new ethers.Wallet(
     process.env.BLOCKCHAIN_PRIVATE_KEY,
     provider
@@ -180,7 +102,6 @@ const getContract = () => {
     wallet
   );
 };
-
 
 // =================================
 // CREATE CERTIFICATE HASH
@@ -205,11 +126,8 @@ const createCertificateHash = ({
     endDate,
   });
 
-  return ethers.keccak256(
-    ethers.toUtf8Bytes(certificateData)
-  );
+  return ethers.keccak256(ethers.toUtf8Bytes(certificateData));
 };
-
 
 // =================================
 // REGISTER CERTIFICATE ON BLOCKCHAIN
@@ -221,20 +139,22 @@ const registerCertificateOnBlockchain = async ({
 }) => {
   const contract = getContract();
 
-  const transaction =
-    await contract.registerCertificate(
-      certificateId,
-      certificateHash
-    );
+  const transaction = await contract.registerCertificate(
+    certificateId,
+    certificateHash
+  );
 
   const receipt = await transaction.wait();
+
+  if (!receipt || receipt.status !== 1) {
+    throw new Error("Certificate registration transaction failed.");
+  }
 
   return {
     transactionHash: receipt.hash,
     certificateHash,
   };
 };
-
 
 // =================================
 // VERIFY CERTIFICATE ON BLOCKCHAIN
@@ -247,9 +167,7 @@ const verifyCertificateOnBlockchain = async ({
   const provider = getProvider();
 
   if (!process.env.BLOCKCHAIN_CONTRACT_ADDRESS) {
-    throw new Error(
-      "BLOCKCHAIN_CONTRACT_ADDRESS is not configured"
-    );
+    throw new Error("BLOCKCHAIN_CONTRACT_ADDRESS is not configured");
   }
 
   const contract = new ethers.Contract(
@@ -258,12 +176,8 @@ const verifyCertificateOnBlockchain = async ({
     provider
   );
 
-  return await contract.verifyCertificate(
-    certificateId,
-    certificateHash
-  );
+  return contract.verifyCertificate(certificateId, certificateHash);
 };
-
 
 // =================================
 // GET CERTIFICATE FROM BLOCKCHAIN
@@ -273,9 +187,7 @@ const getCertificateFromBlockchain = async ({ certificateId }) => {
   const provider = getProvider();
 
   if (!process.env.BLOCKCHAIN_CONTRACT_ADDRESS) {
-    throw new Error(
-      "BLOCKCHAIN_CONTRACT_ADDRESS is not configured"
-    );
+    throw new Error("BLOCKCHAIN_CONTRACT_ADDRESS is not configured");
   }
 
   const contract = new ethers.Contract(
@@ -296,10 +208,10 @@ const getCertificateFromBlockchain = async ({ certificateId }) => {
       exists,
     };
   } catch (error) {
+    console.error("Get Certificate From Blockchain Error:", error.message);
     return null;
   }
 };
-
 
 // =================================
 // HARDENED TRANSACTION VERIFICATION
@@ -313,16 +225,14 @@ const verifyTransactionDetails = async ({
   const provider = getProvider();
 
   if (!process.env.BLOCKCHAIN_CONTRACT_ADDRESS) {
-    throw new Error(
-      "BLOCKCHAIN_CONTRACT_ADDRESS is not configured"
-    );
+    throw new Error("BLOCKCHAIN_CONTRACT_ADDRESS is not configured");
   }
 
   const expectedContractAddress =
     process.env.BLOCKCHAIN_CONTRACT_ADDRESS.toLowerCase();
 
-  // 1. Transaction exists
   const tx = await provider.getTransaction(transactionHash);
+
   if (!tx) {
     return {
       isValid: false,
@@ -330,8 +240,8 @@ const verifyTransactionDetails = async ({
     };
   }
 
-  // 2. Receipt exists & transaction confirmed
   const receipt = await provider.getTransactionReceipt(transactionHash);
+
   if (!receipt) {
     return {
       isValid: false,
@@ -339,7 +249,6 @@ const verifyTransactionDetails = async ({
     };
   }
 
-  // 3. Successful transaction status
   if (receipt.status !== 1) {
     return {
       isValid: false,
@@ -347,8 +256,8 @@ const verifyTransactionDetails = async ({
     };
   }
 
-  // 4. Correct contract address
   const destinationAddress = (receipt.to || tx.to || "").toLowerCase();
+
   if (destinationAddress !== expectedContractAddress) {
     return {
       isValid: false,
@@ -356,7 +265,6 @@ const verifyTransactionDetails = async ({
     };
   }
 
-  // 5. Correct function call & parameters
   const contractInterface = new ethers.Interface(CONTRACT_ABI);
   let parsedTx;
 
@@ -365,7 +273,7 @@ const verifyTransactionDetails = async ({
       data: tx.data,
       value: tx.value,
     });
-  } catch (parseError) {
+  } catch (error) {
     return {
       isValid: false,
       reason: "Failed to decode transaction data against VeriWork ABI.",
@@ -375,14 +283,13 @@ const verifyTransactionDetails = async ({
   if (!parsedTx || parsedTx.name !== "registerCertificate") {
     return {
       isValid: false,
-      reason: `Invalid transaction call. Expected function 'registerCertificate', got '${parsedTx?.name || "unknown"}'.`,
+      reason: `Invalid transaction call. Expected 'registerCertificate', got '${parsedTx?.name || "unknown"}'.`,
     };
   }
 
-  const txCertId = parsedTx.args[0] || parsedTx.args.certificateId;
-  const txCertHash = parsedTx.args[1] || parsedTx.args.certificateHash;
+  const txCertId = parsedTx.args[0];
+  const txCertHash = parsedTx.args[1];
 
-  // 6. Correct certificate ID
   if (txCertId !== certificateId) {
     return {
       isValid: false,
@@ -390,15 +297,13 @@ const verifyTransactionDetails = async ({
     };
   }
 
-  // 7. Correct certificate hash
   if (txCertHash.toLowerCase() !== certificateHash.toLowerCase()) {
     return {
       isValid: false,
-      reason: `Certificate hash mismatch. Transaction contains '${txCertHash}', but expected '${certificateHash}'.`,
+      reason: "Certificate hash in the transaction does not match the expected hash.",
     };
   }
 
-  // 8. Verify on-chain state directly from contract
   const contract = new ethers.Contract(
     process.env.BLOCKCHAIN_CONTRACT_ADDRESS,
     CONTRACT_ABI,
@@ -406,12 +311,13 @@ const verifyTransactionDetails = async ({
   );
 
   let onChainData;
+
   try {
     onChainData = await contract.getCertificate(certificateId);
-  } catch (err) {
+  } catch (error) {
     return {
       isValid: false,
-      reason: "Certificate was not found in smart contract storage.",
+      reason: "Could not read certificate from smart contract storage.",
     };
   }
 
@@ -422,6 +328,13 @@ const verifyTransactionDetails = async ({
     return {
       isValid: false,
       reason: "Certificate does not exist in smart contract storage.",
+    };
+  }
+
+  if (onChainId !== certificateId) {
+    return {
+      isValid: false,
+      reason: "Certificate ID in smart contract storage does not match.",
     };
   }
 
@@ -442,59 +355,39 @@ const verifyTransactionDetails = async ({
   };
 };
 
-
 // =================================
 // CHECK IF WALLET IS ISSUER
 // =================================
 
 const checkIsIssuerOnBlockchain = async (address) => {
   const provider = getProvider();
+
+  if (!process.env.BLOCKCHAIN_CONTRACT_ADDRESS) {
+    throw new Error("BLOCKCHAIN_CONTRACT_ADDRESS is not configured");
+  }
+
   const contract = new ethers.Contract(
     process.env.BLOCKCHAIN_CONTRACT_ADDRESS,
     CONTRACT_ABI,
     provider
   );
 
-  return await contract.isIssuer(address);
+  return contract.isIssuer(address);
 };
-
-
-// =================================
-// ENSURE WALLET HAS GAS (LOCAL FAUCET)
-// =================================
-
-const ensureWalletHasGas = async (targetAddress, minEth = 5) => {
-  try {
-    const provider = getProvider();
-    const balance = await provider.getBalance(targetAddress);
-    const minWei = ethers.parseEther(minEth.toString());
-    if (balance < minWei) {
-      const ownerWallet = new ethers.Wallet(process.env.BLOCKCHAIN_PRIVATE_KEY, provider);
-      const topUpAmount = ethers.parseEther("50.0");
-      const tx = await ownerWallet.sendTransaction({
-        to: targetAddress,
-        value: topUpAmount,
-      });
-      await tx.wait();
-      console.log(`Auto-funded ${targetAddress} with 50 test ETH for gas (tx: ${tx.hash})`);
-    }
-  } catch (err) {
-    console.warn("Auto-faucet notice:", err.message);
-  }
-};
-
 
 // =================================
 // AUTHORIZE ISSUER ON BLOCKCHAIN
 // =================================
 
 const authorizeIssuerOnBlockchain = async (issuerAddress) => {
-  // Automatically provide test ETH to user if balance is low
-  await ensureWalletHasGas(issuerAddress);
+  if (!ethers.isAddress(issuerAddress)) {
+    throw new Error("Invalid issuer wallet address.");
+  }
 
-  const contract = getContract(); // uses owner wallet
+  const contract = getContract();
 
   const isAlreadyIssuer = await contract.isIssuer(issuerAddress);
+
   if (isAlreadyIssuer) {
     return {
       success: true,
@@ -503,8 +396,12 @@ const authorizeIssuerOnBlockchain = async (issuerAddress) => {
     };
   }
 
-  const tx = await contract.addIssuer(issuerAddress);
-  const receipt = await tx.wait();
+  const transaction = await contract.addIssuer(issuerAddress);
+  const receipt = await transaction.wait();
+
+  if (!receipt || receipt.status !== 1) {
+    throw new Error("Issuer authorization transaction failed.");
+  }
 
   return {
     success: true,
@@ -514,15 +411,19 @@ const authorizeIssuerOnBlockchain = async (issuerAddress) => {
   };
 };
 
-
 // =================================
 // REVOKE ISSUER ON BLOCKCHAIN
 // =================================
 
 const revokeIssuerOnBlockchain = async (issuerAddress) => {
+  if (!ethers.isAddress(issuerAddress)) {
+    throw new Error("Invalid issuer wallet address.");
+  }
+
   const contract = getContract();
 
   const isCurrentlyIssuer = await contract.isIssuer(issuerAddress);
+
   if (!isCurrentlyIssuer) {
     return {
       success: true,
@@ -531,8 +432,12 @@ const revokeIssuerOnBlockchain = async (issuerAddress) => {
     };
   }
 
-  const tx = await contract.removeIssuer(issuerAddress);
-  const receipt = await tx.wait();
+  const transaction = await contract.removeIssuer(issuerAddress);
+  const receipt = await transaction.wait();
+
+  if (!receipt || receipt.status !== 1) {
+    throw new Error("Issuer revocation transaction failed.");
+  }
 
   return {
     success: true,
@@ -541,7 +446,6 @@ const revokeIssuerOnBlockchain = async (issuerAddress) => {
     transactionHash: receipt.hash,
   };
 };
-
 
 module.exports = {
   createCertificateHash,
