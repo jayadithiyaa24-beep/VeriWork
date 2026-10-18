@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_34-e948375d0932fc0e9dd48d128900b10d365b2bea",
+  "solcVersion": "0.8.34",
+  "solcLongVersion": "0.8.34+commit.80d5c536",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.15.0"
+  },
+  "userSourceNameMap": {
+    "contracts/VeriWorkCertificate.sol": "project/contracts/VeriWorkCertificate.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "osaka",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/VeriWorkCertificate.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.34;\n\ncontract VeriWorkCertificate {\n    address public owner;\n    mapping(address => bool) public authorizedIssuers;\n\n    struct Certificate {\n        string certificateId;\n        bytes32 certificateHash;\n        address registeredBy;\n        uint256 registeredAt;\n        bool exists;\n    }\n\n    mapping(string => Certificate) private certificates;\n\n    event IssuerAdded(address indexed issuer);\n    event IssuerRemoved(address indexed issuer);\n\n    event CertificateRegistered(\n        string certificateId,\n        bytes32 certificateHash,\n        address registeredBy,\n        uint256 registeredAt\n    );\n\n    modifier onlyOwner() {\n        require(msg.sender == owner, \"Only contract owner can perform this action\");\n        _;\n    }\n\n    modifier onlyAuthorizedIssuer() {\n        require(\n            msg.sender == owner || authorizedIssuers[msg.sender],\n            \"Unauthorized: Only authorized issuers can register certificates\"\n        );\n        _;\n    }\n\n    constructor() {\n        owner = msg.sender;\n        authorizedIssuers[msg.sender] = true;\n        emit IssuerAdded(msg.sender);\n    }\n\n    function addIssuer(address issuer) external onlyOwner {\n        require(issuer != address(0), \"Invalid issuer address\");\n        require(!authorizedIssuers[issuer], \"Issuer already authorized\");\n        authorizedIssuers[issuer] = true;\n        emit IssuerAdded(issuer);\n    }\n\n    function removeIssuer(address issuer) external onlyOwner {\n        require(authorizedIssuers[issuer], \"Issuer not authorized\");\n        require(issuer != owner, \"Cannot remove contract owner as issuer\");\n        authorizedIssuers[issuer] = false;\n        emit IssuerRemoved(issuer);\n    }\n\n    function isIssuer(address account) external view returns (bool) {\n        return account == owner || authorizedIssuers[account];\n    }\n\n    function registerCertificate(\n        string memory certificateId,\n        bytes32 certificateHash\n    ) public onlyAuthorizedIssuer {\n        require(\n            bytes(certificateId).length > 0,\n            \"Certificate ID is required\"\n        );\n\n        require(\n            certificateHash != bytes32(0),\n            \"Certificate hash is required\"\n        );\n\n        require(\n            !certificates[certificateId].exists,\n            \"Certificate already registered\"\n        );\n\n        certificates[certificateId] = Certificate({\n            certificateId: certificateId,\n            certificateHash: certificateHash,\n            registeredBy: msg.sender,\n            registeredAt: block.timestamp,\n            exists: true\n        });\n\n        emit CertificateRegistered(\n            certificateId,\n            certificateHash,\n            msg.sender,\n            block.timestamp\n        );\n    }\n\n    function verifyCertificate(\n        string memory certificateId,\n        bytes32 certificateHash\n    ) public view returns (bool) {\n        Certificate memory certificate =\n            certificates[certificateId];\n\n        if (!certificate.exists) {\n            return false;\n        }\n\n        return certificate.certificateHash == certificateHash;\n    }\n\n    function getCertificate(\n        string memory certificateId\n    )\n        public\n        view\n        returns (\n            string memory,\n            bytes32,\n            address,\n            uint256,\n            bool\n        )\n    {\n        Certificate memory certificate =\n            certificates[certificateId];\n\n        require(\n            certificate.exists,\n            \"Certificate not found\"\n        );\n\n        return (\n            certificate.certificateId,\n            certificate.certificateHash,\n            certificate.registeredBy,\n            certificate.registeredAt,\n            certificate.exists\n        );\n    }\n}"
+      }
+    }
+  }
+}
