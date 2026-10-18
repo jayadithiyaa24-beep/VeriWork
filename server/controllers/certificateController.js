@@ -1,3 +1,463 @@
+﻿
+const crypto = require("crypto");
+
+const Certificate = require("../models/Certificate");
+const Employment = require("../models/Employment");
+
+const {
+  createCertificateHash,
+  registerCertificateOnBlockchain,
+  verifyCertificateOnBlockchain,
+  getCertificateFromBlockchain,
+  verifyTransactionDetails,
+} = require("../services/blockchainService");
+
+
+// =================================
+// CREATE CERTIFICATE
+// =================================
+
+const createCertificate = async (req, res) => {
+  try {
+    if (req.user.role !== "employer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only employers can create certificates",
+      });
+    }
+
+    const { employmentId } = req.body;
+
+    if (!employmentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Employment ID is required",
+      });
+    }
+
+    const employment = await Employment.findById(employmentId)
+      .populate("workerId", "fullName email phone")
+      .populate("employerId", "employerName email phone");
+
+    if (!employment) {
+      return res.status(404).json({
+        success: false,
+        message: "Employment record not found",
+      });
+    }
+
+    if (
+      employment.employerId._id.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You can only create certificates for your own employees",
+      });
+    }
+
+    const existingCertificate = await Certificate.findOne({
+      employmentId: employment._id,
+    });
+
+    if (existingCertificate) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "A certificate already exists for this employment record",
+        certificate: existingCertificate,
+      });
+    }
+
+    const certificateId =
+      `VW-CERT-${new Date().getFullYear()}-` +
+      crypto.randomBytes(4).toString("hex").toUpperCase();
+
+    const certificate = await Certificate.create({
+      certificateId,
+      employmentId: employment._id,
+      workerId: employment.workerId._id,
+      employerId: employment.employerId._id,
+      workerName: employment.workerId.fullName,
+      employerName: employment.employerId.employerName,
+      jobRole: employment.jobRole,
+      salary: employment.salary,
+      startDate: employment.startDate,
+      endDate: employment.endDate,
+      verificationStatus: "Pending",
+      blockchainHash: null,
+      blockchainTransactionHash: null,
+    });
+
+    const certificateHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Work Certificate Created Successfully. Please confirm the blockchain transaction in MetaMask.",
+      certificate,
+      certificateHash,
+    });
+  } catch (error) {
+    console.error("Create Certificate Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// CONFIRM BLOCKCHAIN REGISTRATION
+// =================================
+
+const confirmBlockchainRegistration = async (req, res) => {
+  try {
+    if (req.user.role !== "employer") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only employers can confirm blockchain registration",
+      });
+    }
+
+    const { certificateId } = req.params;
+    const { transactionHash } = req.body;
+
+    if (!certificateId) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate ID is required",
+      });
+    }
+
+    if (!transactionHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Blockchain transaction hash is required",
+      });
+    }
+
+    const normalizedCertificateId =
+      certificateId.trim().toUpperCase();
+
+    const normalizedTransactionHash = transactionHash.trim();
+
+    const existingTxCert = await Certificate.findOne({
+      blockchainTransactionHash: normalizedTransactionHash,
+      certificateId: { $ne: normalizedCertificateId },
+    });
+
+    if (existingTxCert) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This blockchain transaction hash has already been registered for another certificate.",
+      });
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId: normalizedCertificateId,
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    if (
+      certificate.employerId.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only confirm your own certificates",
+      });
+    }
+
+    if (
+      certificate.verificationStatus === "Verified" &&
+      certificate.blockchainHash &&
+      certificate.blockchainTransactionHash
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This certificate is already registered and verified on the blockchain",
+        certificate,
+      });
+    }
+
+    const certificateHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    const verificationResult = await verifyTransactionDetails({
+      transactionHash: normalizedTransactionHash,
+      certificateId: certificate.certificateId,
+      certificateHash,
+    });
+
+    if (!verificationResult.isValid) {
+      return res.status(400).json({
+        success: false,
+        message:
+          `Blockchain verification failed: ${verificationResult.reason}`,
+      });
+    }
+
+    certificate.blockchainHash = certificateHash;
+    certificate.blockchainTransactionHash =
+      normalizedTransactionHash;
+    certificate.verificationStatus = "Verified";
+
+    await certificate.save();
+
+    if (certificate.employmentId) {
+      await Employment.findByIdAndUpdate(
+        certificate.employmentId,
+        { verificationStatus: "Verified" }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Certificate registered and verified on the blockchain successfully",
+      certificate,
+      blockchainVerified: true,
+      blockchainDetails: {
+        transactionHash: normalizedTransactionHash,
+        blockNumber: verificationResult.blockNumber,
+        senderWallet: verificationResult.senderWallet,
+        registeredBy: verificationResult.registeredBy,
+        registeredAt: verificationResult.registeredAt,
+      },
+    });
+  } catch (error) {
+    console.error("Confirm Blockchain Registration Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// REGISTER EXISTING CERTIFICATE
+// ON BLOCKCHAIN
+// =================================
+
+const registerExistingCertificateOnBlockchain = async (
+  req,
+  res
+) => {
+  try {
+    if (req.user.role !== "employer") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only employers can register certificates on the blockchain",
+      });
+    }
+
+    const { certificateId } = req.params;
+
+    if (!certificateId) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate ID is required",
+      });
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId: certificateId.trim().toUpperCase(),
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    if (
+      certificate.employerId.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You can only register your own certificates on the blockchain",
+      });
+    }
+
+    if (
+      certificate.blockchainHash &&
+      certificate.blockchainTransactionHash
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This certificate is already registered on the blockchain",
+        certificate,
+      });
+    }
+
+    const certificateHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    let blockchainResult;
+
+    try {
+      blockchainResult = await registerCertificateOnBlockchain({
+        certificateId: certificate.certificateId,
+        certificateHash,
+      });
+    } catch (blockchainError) {
+      console.error(
+        "Existing Certificate Blockchain Registration Error:",
+        blockchainError
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Existing certificate could not be registered on the blockchain.",
+        error: blockchainError.message,
+      });
+    }
+
+    certificate.blockchainHash = blockchainResult.certificateHash;
+    certificate.blockchainTransactionHash =
+      blockchainResult.transactionHash;
+    certificate.verificationStatus = "Verified";
+
+    await certificate.save();
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Existing Certificate Registered on Blockchain Successfully",
+      certificate,
+    });
+  } catch (error) {
+    console.error("Register Existing Certificate Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// GET EMPLOYER CERTIFICATES
+// =================================
+
+const getEmployerCertificates = async (req, res) => {
+  try {
+    if (req.user.role !== "employer") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only employers can access these certificates",
+      });
+    }
+
+    const certificates = await Certificate.find({
+      employerId: req.user.id,
+    })
+      .populate("workerId", "fullName email phone")
+      .populate(
+        "employmentId",
+        "jobRole salary startDate endDate status"
+      )
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      certificates,
+    });
+  } catch (error) {
+    console.error("Get Employer Certificates Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// GET WORKER CERTIFICATES
+// =================================
+
+const getWorkerCertificates = async (req, res) => {
+  try {
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only workers can access these certificates",
+      });
+    }
+
+    const certificates = await Certificate.find({
+      workerId: req.user.id,
+    })
+      .populate("employerId", "employerName email phone")
+      .populate(
+        "employmentId",
+        "jobRole salary startDate endDate status"
+      )
+      .sort({ issuedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      certificates,
+    });
+  } catch (error) {
+    console.error("Get Worker Certificates Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
 // =================================
 // PUBLIC CERTIFICATE VERIFICATION
 // =================================
@@ -28,7 +488,7 @@ const verifyCertificate = async (req, res) => {
       });
     }
 
-    // Recalculate the hash from certificate data
+    // Recreate the hash from the certificate data.
     const certificateHash = createCertificateHash({
       certificateId: certificate.certificateId,
       workerName: certificate.workerName,
@@ -39,57 +499,83 @@ const verifyCertificate = async (req, res) => {
       endDate: certificate.endDate,
     });
 
-    // Compare calculated hash with the stored hash
+    // If a database hash exists, ensure it matches the
+    // hash recreated from the certificate data.
     const hashMatches =
       Boolean(certificate.blockchainHash) &&
       certificateHash.toLowerCase() ===
-      certificate.blockchainHash.toLowerCase();
+      String(certificate.blockchainHash).toLowerCase();
 
-    if (!hashMatches) {
+    if (certificate.blockchainHash && !hashMatches) {
       return res.status(200).json({
         success: true,
         verified: false,
         message:
-          "Certificate data does not match the stored certificate hash",
+          "Certificate data has been modified and does not match the stored hash",
         certificate,
         hashMatches: false,
         blockchainVerified: false,
+        transactionHashAvailable: Boolean(
+          certificate.blockchainTransactionHash
+        ),
       });
     }
 
-    // Check the actual smart contract
+    // IMPORTANT:
+    // Query the smart contract even when the database
+    // transaction hash is missing.
     let onChainRecord = null;
 
     try {
       onChainRecord = await getCertificateFromBlockchain({
         certificateId: certificate.certificateId,
       });
-    } catch (error) {
-      console.error("Blockchain Verification Error:", error.message);
+    } catch (blockchainError) {
+      console.error(
+        "Blockchain Verification Error:",
+        blockchainError
+      );
     }
 
-    const blockchainVerified =
+    // Verify the on-chain ID and hash against the
+    // recreated certificate hash.
+    const onChainIdMatches =
       Boolean(onChainRecord?.exists) &&
-      onChainRecord.certificateId === certificate.certificateId &&
+      onChainRecord.certificateId === certificate.certificateId;
+
+    const onChainHashMatches =
+      onChainIdMatches &&
+      typeof onChainRecord.certificateHash === "string" &&
       onChainRecord.certificateHash.toLowerCase() ===
       certificateHash.toLowerCase();
 
-    const verified = hashMatches && blockchainVerified;
+    const blockchainVerified = Boolean(onChainHashMatches);
+
+    // If MongoDB has no hash but the contract has the
+    // correct record, the on-chain hash is still authoritative.
+    const verified = blockchainVerified && (
+      !certificate.blockchainHash || hashMatches
+    );
 
     return res.status(200).json({
       success: true,
       verified,
       message: verified
         ? "Certificate verified successfully on the blockchain"
-        : "Certificate could not be verified on the blockchain",
+        : !onChainRecord || !onChainRecord.exists
+          ? "Certificate exists in the database but was not found on the blockchain"
+          : "Certificate could not be verified because the on-chain data does not match",
       certificate,
-      hashMatches,
       blockchainVerified,
+      hashMatches: certificate.blockchainHash
+        ? hashMatches
+        : null,
       transactionHashAvailable: Boolean(
         certificate.blockchainTransactionHash
       ),
-      onChainDetails: onChainRecord
+      onChainDetails: onChainRecord?.exists
         ? {
+          certificateId: onChainRecord.certificateId,
           registeredBy: onChainRecord.registeredBy,
           registeredAt: onChainRecord.registeredAt,
           certificateHash: onChainRecord.certificateHash,
@@ -107,4 +593,221 @@ const verifyCertificate = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+
+// =================================
+// GET CERTIFICATE HASH FOR METAMASK
+// =================================
+
+const getCertificateHash = async (req, res) => {
+  try {
+    const { certificateId } = req.params;
+
+    if (!certificateId) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate ID is required",
+      });
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId: certificateId.trim().toUpperCase(),
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    if (
+      certificate.employerId.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You can only access hashes for your own certificates",
+      });
+    }
+
+    const certificateHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    return res.status(200).json({
+      success: true,
+      certificateId: certificate.certificateId,
+      certificateHash,
+      verificationStatus: certificate.verificationStatus,
+    });
+  } catch (error) {
+    console.error("Get Certificate Hash Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// SYNC CERTIFICATE WITH BLOCKCHAIN
+// =================================
+
+const syncCertificateWithBlockchain = async (req, res) => {
+  try {
+    const { certificateId } = req.params;
+
+    if (!certificateId) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate ID is required",
+      });
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId: certificateId.trim().toUpperCase(),
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    const onChainRecord = await getCertificateFromBlockchain({
+      certificateId: certificate.certificateId,
+    });
+
+    if (!onChainRecord || !onChainRecord.exists) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This certificate is not yet recorded on the blockchain.",
+      });
+    }
+
+    // Avoid marking a certificate verified if the on-chain
+    // hash differs from the hash of the MongoDB certificate.
+    const calculatedHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    if (
+      onChainRecord.certificateId !== certificate.certificateId ||
+      typeof onChainRecord.certificateHash !== "string" ||
+      onChainRecord.certificateHash.toLowerCase() !==
+      calculatedHash.toLowerCase()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "The on-chain certificate data does not match the database certificate.",
+      });
+    }
+
+    certificate.blockchainHash = onChainRecord.certificateHash;
+    certificate.verificationStatus = "Verified";
+
+    await certificate.save();
+
+    if (certificate.employmentId) {
+      await Employment.findByIdAndUpdate(
+        certificate.employmentId,
+        { verificationStatus: "Verified" }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Certificate state successfully synchronized with the blockchain.",
+      certificate,
+      onChainDetails: {
+        registeredBy: onChainRecord.registeredBy,
+        registeredAt: onChainRecord.registeredAt,
+        certificateHash: onChainRecord.certificateHash,
+        contractAddress:
+          process.env.BLOCKCHAIN_CONTRACT_ADDRESS,
+      },
+    });
+  } catch (error) {
+    console.error("Sync Certificate Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =================================
+// DOWNLOAD CERTIFICATE PDF
+// =================================
+
+const { generateCertificatePdf } = require("../services/pdfService");
+
+const downloadCertificatePdf = async (req, res) => {
+  try {
+    const { certificateId } = req.params;
+
+    if (!certificateId) {
+      return res.status(400).send("Certificate ID is required");
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId: certificateId.trim(),
+    });
+
+    if (!certificate) {
+      return res.status(404).send("Certificate not found");
+    }
+
+    const safeFilename = `${certificate.certificateId}.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${safeFilename}"`
+    );
+
+    await generateCertificatePdf(certificate, res);
+  } catch (error) {
+    console.error("PDF Download Route Error:", error);
+
+    if (!res.headersSent) {
+      res.status(500).send("Failed to generate PDF certificate");
+    }
+  }
+};
+
+
+module.exports = {
+  createCertificate,
+  confirmBlockchainRegistration,
+  registerExistingCertificateOnBlockchain,
+  getEmployerCertificates,
+  getWorkerCertificates,
+  verifyCertificate,
+  getCertificateHash,
+  syncCertificateWithBlockchain,
+  downloadCertificatePdf,
 };
