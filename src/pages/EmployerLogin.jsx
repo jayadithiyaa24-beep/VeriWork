@@ -40,8 +40,15 @@ function EmployerLogin() {
     e.preventDefault();
     setLoading(true);
 
+    const warmupTimer = setTimeout(() => {
+      toast.info("Waking up server from idle sleep... Logging you in momentarily.", {
+        autoClose: 6000,
+      });
+    }, 3000);
+
     try {
       const response = await loginEmployer(formData);
+      clearTimeout(warmupTimer);
 
       // Save employer session via storage abstraction
       await storage.saveEmployerSession({
@@ -55,6 +62,7 @@ function EmployerLogin() {
         navigate("/employer-dashboard");
       }, 600);
     } catch (error) {
+      clearTimeout(warmupTimer);
       console.error(error);
 
       toast.error(
@@ -62,6 +70,7 @@ function EmployerLogin() {
         "Employer login failed. Please check credentials."
       );
     } finally {
+      clearTimeout(warmupTimer);
       setLoading(false);
     }
   };

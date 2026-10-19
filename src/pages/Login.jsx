@@ -40,8 +40,15 @@ function Login() {
     e.preventDefault();
     setLoading(true);
 
+    const warmupTimer = setTimeout(() => {
+      toast.info("Waking up server from idle sleep... Logging you in momentarily.", {
+        autoClose: 6000,
+      });
+    }, 3000);
+
     try {
       const response = await loginWorker(formData);
+      clearTimeout(warmupTimer);
 
       // Save worker session via storage abstraction
       await storage.saveWorkerSession({
@@ -55,6 +62,7 @@ function Login() {
         navigate("/worker-dashboard");
       }, 600);
     } catch (error) {
+      clearTimeout(warmupTimer);
       console.error(error);
 
       toast.error(
@@ -62,6 +70,7 @@ function Login() {
         "Login failed. Please check credentials."
       );
     } finally {
+      clearTimeout(warmupTimer);
       setLoading(false);
     }
   };

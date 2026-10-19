@@ -24,11 +24,21 @@ import VerifyCertificate from "./pages/VerifyCertificate";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
+import { API_BASE_URL } from "./services/api";
+
 function App() {
   useEffect(() => {
     // Purge any residual tokens stored in localStorage
     // to enforce tab-scoped privacy.
     storage.purgeLegacyPersistentStorage();
+
+    // Proactively pre-warm Render backend to eliminate cold-start latency
+    try {
+      const serverRoot = API_BASE_URL.replace(/\/api\/?$/, "");
+      fetch(serverRoot, { method: "GET", mode: "no-cors" }).catch(() => {});
+    } catch {
+      // Non-blocking pre-warm ping
+    }
   }, []);
 
   return (
