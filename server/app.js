@@ -25,6 +25,8 @@ app.use(securityHeaders);
 // Allow the deployed frontend and local development frontend.
 const allowedOrigins = [
   "https://veriworkblockchain.netlify.app",
+  "https://veriwork-e4th.onrender.com",
+  "http://localhost:5000",
   "http://localhost:5173",
   "http://localhost:4173",
 ];
@@ -58,13 +60,11 @@ const generalLimiter = rateLimit({
 
 app.use("/api", generalLimiter);
 
-// =================================
-// TEST ROUTE
-// =================================
+const path = require("path");
 
-app.get("/", (req, res) => {
-  res.send("VeriWork Backend Running");
-});
+// Serve frontend static assets
+const publicDir = path.join(__dirname, "public");
+app.use(express.static(publicDir));
 
 // =================================
 // API ROUTES
@@ -77,8 +77,25 @@ app.use("/api/certificates", certificateRoutes);
 app.use("/api/ratings", ratingRoutes);
 app.use("/api/admin", adminRoutes);
 
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "VeriWork Backend Running" });
+});
+
+// SPA fallback for client-side routing
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  const indexPath = path.join(publicDir, "index.html");
+  if (require("fs").existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  return res.send("VeriWork Backend Running");
+});
+
 // =================================
-// 404 NOT FOUND HANDLER
+// 404 NOT FOUND HANDLER (API)
 // =================================
 app.use((req, res) => {
   res.status(404).json({
