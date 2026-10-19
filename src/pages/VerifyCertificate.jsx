@@ -1713,10 +1713,12 @@ function VerifyCertificate() {
 
                     <div className="vw-hash">
                       {certificate.blockchainTransactionHash ||
-                        "Pending blockchain submission"}
+                        (data?.blockchainVerified
+                          ? "Confirmed on Ethereum Sepolia"
+                          : "Pending blockchain submission")}
                     </div>
 
-                    {certificate.blockchainTransactionHash ? (
+                    {certificate.blockchainTransactionHash && (
                       (import.meta.env.VITE_BLOCKCHAIN_EXPLORER_URL || import.meta.env.VITE_EXPLORER_URL) ? (
                         <div style={{ marginTop: "8px" }}>
                           <a
@@ -1751,16 +1753,6 @@ function VerifyCertificate() {
                           <em> Note: Local Hardhat development chains do not have an external public block explorer.</em>
                         </div>
                       )
-                    ) : (
-                      <div
-                        style={{
-                          marginTop: "6px",
-                          fontSize: "0.75rem",
-                          color: "#b45309",
-                        }}
-                      >
-                        ℹ️ Database record verified. On-chain transaction has not yet been submitted by the issuer.
-                      </div>
                     )}
 
                   </div>
