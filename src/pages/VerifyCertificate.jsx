@@ -1713,7 +1713,7 @@ function VerifyCertificate() {
 
                     <div className="vw-hash">
                       {certificate.blockchainTransactionHash ||
-                        (data?.blockchainVerified
+                        (blockchainVerified
                           ? "Confirmed on Ethereum Sepolia"
                           : "Pending blockchain submission")}
                     </div>
