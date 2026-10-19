@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { verifyCertificate } from "../services/certificateService";
+import { API_BASE_URL } from "../services/api";
 
 function VerifyCertificate() {
   const certificateCardRef = useRef(null);
@@ -191,7 +192,7 @@ function VerifyCertificate() {
 
       toast.info("Downloading official cryptographic PDF...");
 
-      const downloadUrl = `http://localhost:5000/api/certificates/download-pdf/${encodeURIComponent(
+      const downloadUrl = `${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
         certificate.certificateId
       )}`;
 
@@ -1323,7 +1324,7 @@ function VerifyCertificate() {
                   </button>
 
                   <a
-                    href={`http://localhost:5000/api/certificates/download-pdf/${encodeURIComponent(
+                    href={`${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
                       certificate.certificateId
                     )}`}
                     target="_blank"

@@ -56,10 +56,10 @@ const getAdminOverview = async (req, res) => {
             : 0,
       },
       contractInfo: {
-        address: process.env.BLOCKCHAIN_CONTRACT_ADDRESS || "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-        network: "Hardhat Local EVM (Chain ID 31337)",
-        rpcUrl: process.env.BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545",
-        ownerAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        address: process.env.BLOCKCHAIN_CONTRACT_ADDRESS || "0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965",
+        network: process.env.BLOCKCHAIN_NETWORK || "Ethereum Sepolia (Chain ID 11155111)",
+        rpcUrl: process.env.BLOCKCHAIN_RPC_URL ? "Configured RPC" : "Default Sepolia RPC",
+        ownerAddress: process.env.BLOCKCHAIN_OWNER_ADDRESS || "Sepolia Contract Owner",
       },
     });
   } catch (error) {

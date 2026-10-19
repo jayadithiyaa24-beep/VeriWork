@@ -9,6 +9,10 @@ const {
   getAdminCertificates,
   inspectBlockchainCertificate,
 } = require("../controllers/adminController");
+const { adminProtect } = require("../middleware/adminAuth");
+
+// Require admin authorization for all administrative endpoints
+router.use(adminProtect);
 
 // System Metrics Overview
 router.get("/overview", getAdminOverview);

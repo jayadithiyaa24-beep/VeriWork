@@ -77,4 +77,38 @@ app.use("/api/certificates", certificateRoutes);
 app.use("/api/ratings", ratingRoutes);
 app.use("/api/admin", adminRoutes);
 
+// =================================
+// 404 NOT FOUND HANDLER
+// =================================
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Resource not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// =================================
+// GLOBAL ERROR HANDLER
+// =================================
+app.use((err, req, res, next) => {
+  const isCorsError = err.message === "Origin not allowed by CORS";
+  const statusCode = err.status || (isCorsError ? 403 : 500);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error("Unhandled Server Error:", err);
+  }
+
+  const isProduction = process.env.NODE_ENV === "production";
+  const safeMessage = isCorsError
+    ? "Origin not allowed by CORS"
+    : (statusCode >= 500 && isProduction
+        ? "An unexpected internal server error occurred."
+        : err.message || "An unexpected error occurred.");
+
+  res.status(statusCode).json({
+    success: false,
+    message: safeMessage,
+  });
+});
+
 module.exports = app;

@@ -191,4 +191,52 @@ export const registerCertificateDirectOnBlockchain = async (
   );
 
   return response.data;
-};
+};
+
+// =================================
+// DOWNLOAD ENCRYPTED IPFS CERTIFICATE (AUTHENTICATED)
+// =================================
+
+export const downloadEncryptedCertificatePdf = async (certificateId) => {
+  const token =
+    sessionStorage.getItem("token") ||
+    sessionStorage.getItem("employerToken");
+
+  if (!token) {
+    throw new Error(
+      "Authentication required to download encrypted certificate from IPFS."
+    );
+  }
+
+  const response = await api.get(
+    `/certificates/download-ipfs/${encodeURIComponent(certificateId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: "blob",
+    }
+  );
+
+  return response.data;
+};
+
+// =================================
+// RETRY IPFS UPLOAD
+// =================================
+
+export const retryCertificateIpfsUpload = async (certificateId) => {
+  const token = sessionStorage.getItem("employerToken");
+
+  const response = await api.post(
+    `/certificates/retry-ipfs/${encodeURIComponent(certificateId)}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};

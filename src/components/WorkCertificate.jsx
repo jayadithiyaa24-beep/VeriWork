@@ -18,15 +18,19 @@ import {
   FaEthereum,
   FaCertificate,
 } from "react-icons/fa";
+import { API_BASE_URL } from "../services/api";
+import { downloadEncryptedCertificatePdf } from "../services/certificateService";
 
 const SMART_CONTRACT_ADDRESS =
-  "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+  import.meta.env.VITE_CONTRACT_ADDRESS ||
+  "0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965";
 
 function WorkCertificate({ certificate, onClose }) {
   const certificateRef = useRef(null);
 
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [downloadingIpfs, setDownloadingIpfs] = useState(false);
 
   /* =========================================================
      GENERATE VERIFICATION QR
@@ -88,7 +92,7 @@ function WorkCertificate({ certificate, onClose }) {
     Boolean(certificate.blockchainTransactionHash);
 
   /* =========================================================
-     DOWNLOAD CERTIFICATE PDF
+     DOWNLOAD CERTIFICATE PDF (PUBLIC DYNAMIC)
   ========================================================= */
 
   const handleDownloadPDF = () => {
@@ -97,7 +101,7 @@ function WorkCertificate({ certificate, onClose }) {
 
       toast.info("Downloading official cryptographic PDF...");
 
-      const downloadUrl = `http://localhost:5000/api/certificates/download-pdf/${encodeURIComponent(
+      const downloadUrl = `${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
         certificate.certificateId
       )}`;
 
@@ -122,6 +126,53 @@ function WorkCertificate({ certificate, onClose }) {
       toast.error("Download failed. Please try again.");
     } finally {
       setTimeout(() => setGeneratingPdf(false), 800);
+    }
+  };
+
+  /* =========================================================
+     DOWNLOAD ENCRYPTED CERTIFICATE PDF (AUTHENTICATED IPFS)
+  ========================================================= */
+
+  const handleDownloadIPFS = async () => {
+    try {
+      setDownloadingIpfs(true);
+      toast.info("Retrieving and decrypting certificate from IPFS...");
+
+      const blob = await downloadEncryptedCertificatePdf(
+        certificate.certificateId
+      );
+
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${certificate.certificateId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast.success(
+        "Encrypted IPFS Certificate decrypted and downloaded! 🛡️✓"
+      );
+    } catch (err) {
+      console.error("IPFS Download Error:", err);
+      let errorMsg = "Failed to download certificate from IPFS.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed.message) errorMsg = parsed.message;
+        } catch {
+          errorMsg = "Failed to download certificate from IPFS.";
+        }
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      toast.error(errorMsg);
+    } finally {
+      setDownloadingIpfs(false);
     }
   };
 
@@ -1660,7 +1711,7 @@ function WorkCertificate({ certificate, onClose }) {
 
 
             <a
-              href={`http://localhost:5000/api/certificates/download-pdf/${encodeURIComponent(
+              href={`${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
                 certificate.certificateId
               )}`}
               target="_blank"
@@ -1671,10 +1722,35 @@ function WorkCertificate({ certificate, onClose }) {
               Open PDF
             </a>
 
+            {(sessionStorage.getItem("token") ||
+              sessionStorage.getItem("employerToken")) && (
+              <button
+                type="button"
+                className="vw-certificate-action primary"
+                onClick={handleDownloadIPFS}
+                disabled={downloadingIpfs}
+                title="Download verified AES-256-GCM decrypted PDF from IPFS"
+              >
+                {downloadingIpfs ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    />
+                    Decrypting...
+                  </>
+                ) : (
+                  <>
+                    <FaLock />
+                    Download IPFS PDF
+                  </>
+                )}
+              </button>
+            )}
 
             <button
               type="button"
-              className="vw-certificate-action primary"
+              className="vw-certificate-action secondary"
               onClick={handleDownloadPDF}
               disabled={generatingPdf}
             >

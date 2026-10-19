@@ -61,7 +61,7 @@ const securityHeaders = (req, res, next) => {
 };
 
 // Periodically clean up stale rate limiter entries every 30 minutes
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, data] of requestCounts.entries()) {
     if (now > data.resetTime) {
@@ -69,6 +69,10 @@ setInterval(() => {
     }
   }
 }, 30 * 60 * 1000);
+
+if (cleanupTimer.unref) {
+  cleanupTimer.unref();
+}
 
 module.exports = {
   rateLimit,

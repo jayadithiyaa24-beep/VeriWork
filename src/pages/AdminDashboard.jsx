@@ -9,10 +9,13 @@ import {
   getAdminCertificates,
   inspectBlockchainCertificate,
 } from "../services/adminService";
+import { API_BASE_URL } from "../services/api";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("issuers"); // 'issuers' | 'ledger'
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [adminKeyInput, setAdminKeyInput] = useState(sessionStorage.getItem("adminKey") || "");
   const [stats, setStats] = useState(null);
   const [contractInfo, setContractInfo] = useState(null);
   const [issuers, setIssuers] = useState([]);
@@ -48,12 +51,39 @@ function AdminDashboard() {
       if (certsRes.success) {
         setCertificates(certsRes.certificates);
       }
+      setUnauthorized(false);
     } catch (err) {
       console.error("Failed to load admin data:", err);
-      toast.error("Failed to load platform administration data");
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setUnauthorized(true);
+        toast.warn("Admin authorization required to access platform governance.");
+      } else {
+        toast.error("Failed to load platform administration data");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUnlockAdmin = (e) => {
+    e.preventDefault();
+    if (!adminKeyInput.trim()) {
+      toast.error("Please enter the Admin Authorization Key.");
+      return;
+    }
+    sessionStorage.setItem("adminKey", adminKeyInput.trim());
+    loadAdminData();
+  };
+
+  const handleLockAdmin = () => {
+    sessionStorage.removeItem("adminKey");
+    setAdminKeyInput("");
+    setUnauthorized(true);
+    setStats(null);
+    setContractInfo(null);
+    setIssuers([]);
+    setCertificates([]);
+    toast.info("Admin governance session locked.");
   };
 
   useEffect(() => {
@@ -199,6 +229,15 @@ function AdminDashboard() {
           </div>
 
           <div className="d-flex align-items-center gap-2">
+            {!unauthorized && (
+              <button
+                className="btn btn-outline-warning btn-sm px-3"
+                onClick={handleLockAdmin}
+                title="Lock Admin Session"
+              >
+                🔒 Lock
+              </button>
+            )}
             <button
               className="btn btn-outline-info btn-sm px-3"
               onClick={loadAdminData}
@@ -211,6 +250,56 @@ function AdminDashboard() {
             </Link>
           </div>
         </div>
+
+        {/* ================================= */}
+        {/* ADMIN UNLOCK SCREEN OR DASHBOARD CONTENT */}
+        {/* ================================= */}
+        {unauthorized ? (
+          <div className="row justify-content-center my-5 py-4">
+            <div className="col-md-6 col-lg-5">
+              <div
+                className="card border-0 rounded-4 p-4 text-center"
+                style={{
+                  background: "rgba(15, 23, 42, 0.95)",
+                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
+                }}
+              >
+                <div className="fs-1 mb-3">🔐</div>
+                <h4 className="fw-bold text-light mb-2">
+                  Governance Authorization Required
+                </h4>
+                <p className="text-muted small mb-4">
+                  Access to smart contract issuer governance and blockchain audit logs requires the server <code>ADMIN_API_KEY</code>.
+                </p>
+                <form onSubmit={handleUnlockAdmin}>
+                  <div className="mb-3 text-start">
+                    <label className="form-label text-light small fw-bold">
+                      Admin Authorization Key
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control form-control-lg bg-dark text-light border-secondary"
+                      placeholder="Enter admin key..."
+                      value={adminKeyInput}
+                      onChange={(e) => setAdminKeyInput(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-lg w-100 fw-bold shadow-sm"
+                    disabled={loading}
+                  >
+                    {loading ? "Verifying Key..." : "Unlock Protocol Governance"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
 
         {/* ================================= */}
         {/* CONTRACT INFO STRIP */}
@@ -602,7 +691,7 @@ function AdminDashboard() {
                               🔍 Inspect
                             </button>
                             <a
-                              href={`http://localhost:5000/api/certificates/download-pdf/${encodeURIComponent(
+                              href={`${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
                                 cert.certificateId
                               )}`}
                               target="_blank"
@@ -766,6 +855,8 @@ function AdminDashboard() {
               </div>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>
