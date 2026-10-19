@@ -7,6 +7,10 @@ import jsPDF from "jspdf";
 import { verifyCertificate } from "../services/certificateService";
 import { API_BASE_URL } from "../services/api";
 
+const SMART_CONTRACT_ADDRESS =
+  import.meta.env.VITE_CONTRACT_ADDRESS ||
+  "0xe2CC881c9aE8f1C6D1209C6171b84aeDB3134965";
+
 function VerifyCertificate() {
   const certificateCardRef = useRef(null);
 
@@ -1188,7 +1192,7 @@ function VerifyCertificate() {
               <div className="vw-verify-helper">
                 <span>
                   🛡️ Immutable Smart Contract Ledger:{" "}
-                  <strong>0x9fE4...a6e0</strong>
+                  <strong>{`${SMART_CONTRACT_ADDRESS.slice(0, 6)}...${SMART_CONTRACT_ADDRESS.slice(-4)}`}</strong>
                 </span>
 
                 <span>
@@ -1787,8 +1791,7 @@ function VerifyCertificate() {
                     </div>
 
                     <div className="vw-hash">
-                      {onChainDetails?.contractAddress ||
-                        "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"}
+                      {onChainDetails?.contractAddress || SMART_CONTRACT_ADDRESS}
                     </div>
 
                   </div>

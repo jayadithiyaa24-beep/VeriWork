@@ -1,7 +1,7 @@
-
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Load verified Ethereum Sepolia configuration
 const app = require("./app");
 const connectDB = require("./config/db");
 
