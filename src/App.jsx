@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 import storage from "./utils/storage";
 
 import Navbar from "./components/NavBar";
@@ -26,11 +26,99 @@ import NotFound from "./pages/NotFound";
 
 import { API_BASE_URL } from "./services/api";
 
+function SessionSecurityManager() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // 1. Auto-logout when user navigates to the public Home page ("/")
+  useEffect(() => {
+    if (location.pathname === "/") {
+      const hasWorker = Boolean(storage.getWorkerToken());
+      const hasEmployer = Boolean(storage.getEmployerToken());
+
+      if (hasWorker || hasEmployer) {
+        storage.clearWorkerSession();
+        storage.clearEmployerSession();
+      }
+    }
+  }, [location.pathname]);
+
+  // 2. Auto-logout after 5 minutes of stationary inactivity
+  useEffect(() => {
+    const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+    let inactivityTimer;
+
+    const handleInactivityLogout = () => {
+      const hasWorker = Boolean(storage.getWorkerToken());
+      const hasEmployer = Boolean(storage.getEmployerToken());
+
+      if (hasWorker || hasEmployer) {
+        storage.clearWorkerSession();
+        storage.clearEmployerSession();
+
+        toast.warn(
+          "Session expired due to 5 minutes of inactivity. Please log in again.",
+          {
+            toastId: "inactivity-logout-toast",
+          }
+        );
+
+        if (hasWorker) {
+          navigate("/login");
+        } else if (hasEmployer) {
+          navigate("/employer-login");
+        }
+      }
+    };
+
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(handleInactivityLogout, INACTIVITY_TIMEOUT_MS);
+    };
+
+    const activityEvents = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, resetTimer, { passive: true });
+    });
+
+    // Start initial 5-minute timer
+    resetTimer();
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      activityEvents.forEach((evt) => {
+        window.removeEventListener(evt, resetTimer);
+      });
+    };
+  }, [navigate]);
+
+  return null;
+}
+
 function App() {
   useEffect(() => {
     // Purge any residual tokens stored in localStorage
     // to enforce tab-scoped privacy.
     storage.purgeLegacyPersistentStorage();
+
+    // Check if the page was reloaded by the user (F5, browser reload button, etc.)
+    const navEntries = performance.getEntriesByType?.("navigation") || [];
+    const isReload =
+      (navEntries.length > 0 && navEntries[0].type === "reload") ||
+      performance?.navigation?.type === 1;
+
+    if (isReload) {
+      storage.clearWorkerSession();
+      storage.clearEmployerSession();
+    }
 
     // Proactively pre-warm Render backend to eliminate cold-start latency
     try {
@@ -43,6 +131,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <SessionSecurityManager />
       <div className="vw-app">
 
         {/* =====================================================
