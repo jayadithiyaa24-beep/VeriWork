@@ -83,8 +83,8 @@ app.get("/api/health", (req, res) => {
 });
 
 // SPA fallback for client-side routing
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api")) {
+app.use((req, res, next) => {
+  if (req.method !== "GET" || req.path.startsWith("/api")) {
     return next();
   }
   const indexPath = path.join(publicDir, "index.html");
