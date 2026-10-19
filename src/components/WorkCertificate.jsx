@@ -19,7 +19,7 @@ import {
   FaCertificate,
 } from "react-icons/fa";
 import { API_BASE_URL } from "../services/api";
-import { downloadEncryptedCertificatePdf } from "../services/certificateService";
+import { downloadCertificatePdf } from "../services/certificateService";
 
 const SMART_CONTRACT_ADDRESS =
   import.meta.env.VITE_CONTRACT_ADDRESS ||
@@ -30,7 +30,6 @@ function WorkCertificate({ certificate, onClose }) {
 
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [downloadingIpfs, setDownloadingIpfs] = useState(false);
 
   /* =========================================================
      GENERATE VERIFICATION QR
@@ -92,53 +91,15 @@ function WorkCertificate({ certificate, onClose }) {
     Boolean(certificate.blockchainTransactionHash);
 
   /* =========================================================
-     DOWNLOAD CERTIFICATE PDF (PUBLIC DYNAMIC)
+     DOWNLOAD OFFICIAL CERTIFICATE PDF (AUTHENTICATED ON-DEMAND)
   ========================================================= */
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
       setGeneratingPdf(true);
+      toast.info("Generating official cryptographic certificate PDF...");
 
-      toast.info("Downloading official cryptographic PDF...");
-
-      const downloadUrl = `${API_BASE_URL}/certificates/download-pdf/${encodeURIComponent(
-        certificate.certificateId
-      )}`;
-
-      const a = document.createElement("a");
-
-      a.href = downloadUrl;
-      a.download = `${certificate.certificateId}.pdf`;
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      toast.success(
-        "Certificate PDF downloaded! You can open it in any PDF reader. 📄✓"
-      );
-    } catch (error) {
-      console.error(
-        "Certificate PDF Download Error:",
-        error
-      );
-
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setTimeout(() => setGeneratingPdf(false), 800);
-    }
-  };
-
-  /* =========================================================
-     DOWNLOAD ENCRYPTED CERTIFICATE PDF (AUTHENTICATED IPFS)
-  ========================================================= */
-
-  const handleDownloadIPFS = async () => {
-    try {
-      setDownloadingIpfs(true);
-      toast.info("Retrieving and decrypting certificate from IPFS...");
-
-      const blob = await downloadEncryptedCertificatePdf(
+      const blob = await downloadCertificatePdf(
         certificate.certificateId
       );
 
@@ -152,27 +113,27 @@ function WorkCertificate({ certificate, onClose }) {
       window.URL.revokeObjectURL(blobUrl);
 
       toast.success(
-        "Encrypted IPFS Certificate decrypted and downloaded! 🛡️✓"
+        "Certificate PDF generated and downloaded! 📄✓"
       );
-    } catch (err) {
-      console.error("IPFS Download Error:", err);
-      let errorMsg = "Failed to download certificate from IPFS.";
-      if (err.response?.data instanceof Blob) {
+    } catch (error) {
+      console.error("Certificate PDF Download Error:", error);
+      let errorMsg = "Failed to download certificate PDF.";
+      if (error.response?.data instanceof Blob) {
         try {
-          const text = await err.response.data.text();
+          const text = await error.response.data.text();
           const parsed = JSON.parse(text);
           if (parsed.message) errorMsg = parsed.message;
         } catch {
-          errorMsg = "Failed to download certificate from IPFS.";
+          errorMsg = "Failed to download certificate PDF.";
         }
-      } else if (err.response?.data?.message) {
-        errorMsg = err.response.data.message;
-      } else if (err.message) {
-        errorMsg = err.message;
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
       }
       toast.error(errorMsg);
     } finally {
-      setDownloadingIpfs(false);
+      setGeneratingPdf(false);
     }
   };
 
@@ -1722,37 +1683,12 @@ function WorkCertificate({ certificate, onClose }) {
               Open PDF
             </a>
 
-            {(sessionStorage.getItem("token") ||
-              sessionStorage.getItem("employerToken")) && (
-              <button
-                type="button"
-                className="vw-certificate-action primary"
-                onClick={handleDownloadIPFS}
-                disabled={downloadingIpfs}
-                title="Download verified AES-256-GCM decrypted PDF from IPFS"
-              >
-                {downloadingIpfs ? (
-                  <>
-                    <span
-                      className="spinner-border spinner-border-sm"
-                      aria-hidden="true"
-                    />
-                    Decrypting...
-                  </>
-                ) : (
-                  <>
-                    <FaLock />
-                    Download IPFS PDF
-                  </>
-                )}
-              </button>
-            )}
-
             <button
               type="button"
-              className="vw-certificate-action secondary"
+              className="vw-certificate-action primary"
               onClick={handleDownloadPDF}
               disabled={generatingPdf}
+              title="Download official PDF credential"
             >
               {generatingPdf ? (
                 <>

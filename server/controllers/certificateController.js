@@ -3,87 +3,22 @@ const crypto = require("crypto");
 const Certificate = require("../models/Certificate");
 const Employment = require("../models/Employment");
 
+const blockchainService = require("../services/blockchainService");
 const {
   createCertificateHash,
   registerCertificateOnBlockchain,
   getCertificateFromBlockchain,
   verifyTransactionDetails,
-} = require("../services/blockchainService");
-
-const {
-  uploadCertificatePdfToIPFS,
-} = require("../services/certificateIpfsService");
+} = blockchainService;
 
 const {
   generateCertificatePdf,
 } = require("../services/pdfService");
 
-const {
-  decryptBuffer,
-} = require("../services/encryptionService");
 
-const {
-  downloadFromIPFS,
-} = require("../services/ipfsService");
-
-
-// =================================
-// IPFS CERTIFICATE UPLOAD HELPER
-// =================================
-
-const uploadCertificateToIPFS = async (certificate) => {
-  if (
-    certificate.ipfsStatus === "Uploaded" &&
-    certificate.ipfsCid
-  ) {
-    return true;
-  }
-
-  try {
-    certificate.ipfsStatus = "Pending";
-    await certificate.save();
-
-    const metadata =
-      await uploadCertificatePdfToIPFS(certificate);
-
-    certificate.ipfsCid = metadata.ipfsCid;
-    certificate.ipfsUrl = metadata.ipfsUrl;
-    certificate.ipfsStatus = "Uploaded";
-    certificate.ipfsUploadedAt = metadata.ipfsUploadedAt;
-    certificate.ipfsEncryptionAlgorithm =
-      metadata.ipfsEncryptionAlgorithm;
-    certificate.ipfsEncryptionIv =
-      metadata.ipfsEncryptionIv;
-    certificate.ipfsEncryptionAuthTag =
-      metadata.ipfsEncryptionAuthTag;
-
-    await certificate.save();
-
-    return true;
-  } catch (error) {
-    console.error(
-      "Certificate IPFS Upload Error:",
-      error
-    );
-
-    try {
-      certificate.ipfsStatus = "Failed";
-      await certificate.save();
-    } catch (saveError) {
-      console.error(
-        "Failed to save IPFS failure status:",
-        saveError
-      );
-    }
-
-    return false;
-  }
-};
-
-
-// =================================
-// CREATE CERTIFICATE
-// =================================
+// =========================================================
+// 1. CREATE CERTIFICATE
+// =========================================================
 
 const createCertificate = async (req, res) => {
   try {
@@ -186,9 +121,9 @@ const createCertificate = async (req, res) => {
 };
 
 
-// =================================
-// CONFIRM BLOCKCHAIN REGISTRATION
-// =================================
+// =========================================================
+// 2. CONFIRM BLOCKCHAIN REGISTRATION
+// =========================================================
 
 const confirmBlockchainRegistration = async (req, res) => {
   try {
@@ -313,19 +248,12 @@ const confirmBlockchainRegistration = async (req, res) => {
       );
     }
 
-    // Upload only after blockchain verification succeeds.
-    // An IPFS failure must not undo blockchain verification.
-    const ipfsUploaded =
-      await uploadCertificateToIPFS(certificate);
-
     return res.status(200).json({
       success: true,
-      message: ipfsUploaded
-        ? "Certificate verified on the blockchain and encrypted PDF uploaded to IPFS."
-        : "Certificate verified on the blockchain, but the IPFS upload failed. You can retry the upload.",
+      message:
+        "Certificate verified and permanently anchored to the Ethereum Sepolia blockchain.",
       certificate,
       blockchainVerified: true,
-      ipfsUploaded,
       blockchainDetails: {
         transactionHash: normalizedTransactionHash,
         blockNumber: verificationResult.blockNumber,
@@ -348,10 +276,9 @@ const confirmBlockchainRegistration = async (req, res) => {
 };
 
 
-// =================================
-// REGISTER EXISTING CERTIFICATE
-// ON BLOCKCHAIN
-// =================================
+// =========================================================
+// 3. REGISTER EXISTING CERTIFICATE ON BLOCKCHAIN
+// =========================================================
 
 const registerExistingCertificateOnBlockchain = async (
   req,
@@ -451,17 +378,12 @@ const registerExistingCertificateOnBlockchain = async (
 
     await certificate.save();
 
-    const ipfsUploaded =
-      await uploadCertificateToIPFS(certificate);
-
     return res.status(200).json({
       success: true,
-      message: ipfsUploaded
-        ? "Existing certificate registered on the blockchain and encrypted PDF uploaded to IPFS."
-        : "Existing certificate registered on the blockchain, but the IPFS upload failed. You can retry the upload.",
+      message:
+        "Existing certificate registered on the blockchain successfully.",
       certificate,
       blockchainVerified: true,
-      ipfsUploaded,
     });
   } catch (error) {
     console.error(
@@ -477,9 +399,9 @@ const registerExistingCertificateOnBlockchain = async (
 };
 
 
-// =================================
-// GET EMPLOYER CERTIFICATES
-// =================================
+// =========================================================
+// 4. GET EMPLOYER CERTIFICATES
+// =========================================================
 
 const getEmployerCertificates = async (req, res) => {
   try {
@@ -519,9 +441,9 @@ const getEmployerCertificates = async (req, res) => {
 };
 
 
-// =================================
-// GET WORKER CERTIFICATES
-// =================================
+// =========================================================
+// 5. GET WORKER CERTIFICATES
+// =========================================================
 
 const getWorkerCertificates = async (req, res) => {
   try {
@@ -561,9 +483,9 @@ const getWorkerCertificates = async (req, res) => {
 };
 
 
-// =================================
-// PUBLIC CERTIFICATE VERIFICATION
-// =================================
+// =========================================================
+// 6. PUBLIC CERTIFICATE VERIFICATION (SAFE METADATA)
+// =========================================================
 
 const verifyCertificate = async (req, res) => {
   try {
@@ -591,7 +513,7 @@ const verifyCertificate = async (req, res) => {
       });
     }
 
-    // Recreate the hash from the certificate data.
+    // Recreate deterministic hash from certificate data
     const certificateHash = createCertificateHash({
       certificateId: certificate.certificateId,
       workerName: certificate.workerName,
@@ -607,6 +529,10 @@ const verifyCertificate = async (req, res) => {
       certificateHash.toLowerCase() ===
       String(certificate.blockchainHash).toLowerCase();
 
+    // Redact salary from public verification responses to protect worker financial privacy
+    const certRaw = certificate.toObject ? certificate.toObject() : { ...certificate };
+    const { salary: _redactedSalary, ...publicCertificate } = certRaw;
+
     if (
       certificate.blockchainHash &&
       !hashMatches
@@ -616,7 +542,7 @@ const verifyCertificate = async (req, res) => {
         verified: false,
         message:
           "Certificate data has been modified and does not match the stored hash",
-        certificate,
+        certificate: publicCertificate,
         hashMatches: false,
         blockchainVerified: false,
         transactionHashAvailable: Boolean(
@@ -629,10 +555,9 @@ const verifyCertificate = async (req, res) => {
 
     try {
       onChainRecord =
-        await require("../services/blockchainService")
-          .getCertificateFromBlockchain({
-            certificateId: certificate.certificateId,
-          });
+        await blockchainService.getCertificateFromBlockchain({
+          certificateId: certificate.certificateId,
+        });
     } catch (blockchainError) {
       console.error(
         "Blockchain Verification Error:",
@@ -666,7 +591,7 @@ const verifyCertificate = async (req, res) => {
         : !onChainRecord || !onChainRecord.exists
           ? "Certificate exists in the database but was not found on the blockchain"
           : "Certificate could not be verified because the on-chain data does not match",
-      certificate,
+      certificate: publicCertificate,
       blockchainVerified,
       hashMatches: certificate.blockchainHash
         ? hashMatches
@@ -697,9 +622,9 @@ const verifyCertificate = async (req, res) => {
 };
 
 
-// =================================
-// GET CERTIFICATE HASH FOR METAMASK
-// =================================
+// =========================================================
+// 7. GET CERTIFICATE HASH FOR METAMASK SIGNING
+// =========================================================
 
 const getCertificateHash = async (req, res) => {
   try {
@@ -761,9 +686,9 @@ const getCertificateHash = async (req, res) => {
 };
 
 
-// =================================
-// SYNC CERTIFICATE WITH BLOCKCHAIN
-// =================================
+// =========================================================
+// 8. SYNC CERTIFICATE WITH BLOCKCHAIN
+// =========================================================
 
 const syncCertificateWithBlockchain = async (req, res) => {
   try {
@@ -800,7 +725,7 @@ const syncCertificateWithBlockchain = async (req, res) => {
     }
 
     const onChainRecord =
-      await getCertificateFromBlockchain({
+      await blockchainService.getCertificateFromBlockchain({
         certificateId: certificate.certificateId,
       });
 
@@ -850,16 +775,11 @@ const syncCertificateWithBlockchain = async (req, res) => {
       );
     }
 
-    const ipfsUploaded =
-      await uploadCertificateToIPFS(certificate);
-
     return res.status(200).json({
       success: true,
-      message: ipfsUploaded
-        ? "Certificate synchronized with the blockchain and encrypted PDF uploaded to IPFS."
-        : "Certificate synchronized with the blockchain, but the IPFS upload failed. You can retry the upload.",
+      message:
+        "Certificate synchronized with the blockchain.",
       certificate,
-      ipfsUploaded,
       onChainDetails: {
         registeredBy: onChainRecord.registeredBy,
         registeredAt: onChainRecord.registeredAt,
@@ -879,20 +799,12 @@ const syncCertificateWithBlockchain = async (req, res) => {
 };
 
 
-// =================================
-// RETRY CERTIFICATE IPFS UPLOAD
-// =================================
+// =========================================================
+// 9. AUTHENTICATED CERTIFICATE PDF DOWNLOAD (STRICT RBAC)
+// =========================================================
 
-const retryCertificateIpfsUpload = async (req, res) => {
+const downloadCertificatePdf = async (req, res) => {
   try {
-    if (req.user.role !== "employer") {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Only employers can retry certificate IPFS uploads",
-      });
-    }
-
     const certificateId = String(
       req.params.certificateId || ""
     )
@@ -903,6 +815,17 @@ const retryCertificateIpfsUpload = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Certificate ID is required",
+      });
+    }
+
+    // Extract caller ID and role from verified JWT
+    const userId = String(req.user?.id || req.user?._id || "").trim();
+    const userRole = String(req.user?.role || "").toLowerCase().trim();
+
+    if (!userId || !userRole) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required to download certificate",
       });
     }
 
@@ -917,283 +840,184 @@ const retryCertificateIpfsUpload = async (req, res) => {
       });
     }
 
-    if (
-      certificate.employerId.toString() !==
-      req.user.id.toString()
-    ) {
+    // Extract associated worker & employer IDs
+    const certWorkerId = String(
+      certificate.workerId?._id || certificate.workerId || ""
+    );
+    const certEmployerId = String(
+      certificate.employerId?._id || certificate.employerId || ""
+    );
+
+    // Strict ownership verification
+    const isAuthorizedWorker =
+      userRole === "worker" && certWorkerId === userId;
+    const isAuthorizedEmployer =
+      userRole === "employer" && certEmployerId === userId;
+
+    if (!isAuthorizedWorker && !isAuthorizedEmployer) {
       return res.status(403).json({
         success: false,
         message:
-          "You can only upload your own certificates to IPFS",
+          "You are not authorized to download this certificate. Only the worker or employer associated with this certificate may download it.",
       });
     }
 
-    if (
-      certificate.verificationStatus !== "Verified" ||
-      !certificate.blockchainHash
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "The certificate must be verified on the blockchain before uploading to IPFS",
-      });
-    }
-
-    if (
-      certificate.ipfsStatus === "Uploaded" &&
-      certificate.ipfsCid
-    ) {
-      return res.status(200).json({
-        success: true,
-        message:
-          "The encrypted certificate PDF is already uploaded to IPFS",
-        ipfsStatus: certificate.ipfsStatus,
-        ipfsCid: certificate.ipfsCid,
-        ipfsUrl: certificate.ipfsUrl,
-      });
-    }
-
-    const uploaded =
-      await uploadCertificateToIPFS(certificate);
-
-    if (!uploaded) {
-      return res.status(502).json({
-        success: false,
-        message:
-          "The IPFS upload failed. Check the server logs and try again.",
-        ipfsStatus: certificate.ipfsStatus,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "Encrypted certificate PDF uploaded to IPFS successfully",
-      ipfsStatus: certificate.ipfsStatus,
-      ipfsCid: certificate.ipfsCid,
-      ipfsUrl: certificate.ipfsUrl,
-      ipfsUploadedAt: certificate.ipfsUploadedAt,
-    });
-  } catch (error) {
-    console.error(
-      "Retry Certificate IPFS Upload Error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Failed to retry certificate IPFS upload",
-    });
-  }
-};
-
-
-// =================================
-// DOWNLOAD PUBLIC CERTIFICATE PDF
-// =================================
-
-const downloadCertificatePdf = async (req, res) => {
-  try {
-    const { certificateId } = req.params;
-
-    if (!certificateId) {
-      return res.status(400).send(
-        "Certificate ID is required"
-      );
-    }
-
-    const certificate = await Certificate.findOne({
-      certificateId: certificateId.trim(),
-    });
-
-    if (!certificate) {
-      return res.status(404).send(
-        "Certificate not found"
-      );
-    }
-
-    const safeFilename =
-      `${certificate.certificateId}.pdf`;
+    const safeFilename = `${certificate.certificateId}.pdf`;
 
     res.setHeader("Content-Type", "application/pdf");
-
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${safeFilename}"`
     );
-
-    await generateCertificatePdf(certificate, res);
-  } catch (error) {
-    console.error("PDF Download Route Error:", error);
-
-    if (!res.headersSent) {
-      res.status(500).send(
-        "Failed to generate PDF certificate"
-      );
-    }
-  }
-};
-
-
-// =================================
-// SECURE IPFS CERTIFICATE DOWNLOAD
-// =================================
-
-const downloadEncryptedCertificatePdf = async (req, res) => {
-  try {
-    const certificateId = String(
-      req.params.certificateId || ""
-    )
-      .trim()
-      .toUpperCase();
-
-    if (!certificateId) {
-      return res.status(400).json({
-        success: false,
-        message: "Certificate ID is required",
-      });
-    }
-
-    const certificate = await Certificate.findOne({
-      certificateId,
-    });
-
-    if (!certificate) {
-      return res.status(404).json({
-        success: false,
-        message: "Certificate not found",
-      });
-    }
-
-    const userId = String(req.user.id);
-    const userRole = String(req.user.role).toLowerCase();
-
-    const isEmployer =
-      userRole === "employer" &&
-      certificate.employerId.toString() === userId;
-
-    const isWorker =
-      userRole === "worker" &&
-      certificate.workerId.toString() === userId;
-
-    if (!isEmployer && !isWorker) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "You are not authorized to download this certificate",
-      });
-    }
-
-    if (
-      certificate.ipfsStatus !== "Uploaded" ||
-      !certificate.ipfsCid
-    ) {
-      return res.status(409).json({
-        success: false,
-        message:
-          "The encrypted certificate PDF has not yet been uploaded to IPFS",
-      });
-    }
-
-    if (
-      certificate.ipfsEncryptionAlgorithm !== "aes-256-gcm" ||
-      !certificate.ipfsEncryptionIv ||
-      !certificate.ipfsEncryptionAuthTag
-    ) {
-      return res.status(500).json({
-        success: false,
-        message:
-          "Certificate encryption metadata is incomplete",
-      });
-    }
-
-    let encryptedBuffer;
-    try {
-      encryptedBuffer = await downloadFromIPFS(
-        certificate.ipfsCid
-      );
-    } catch (ipfsError) {
-      console.error(
-        `Upstream IPFS download failure for ${certificate.certificateId}:`,
-        ipfsError.message
-      );
-
-      const status =
-        ipfsError.statusCode === 503 ? 503 : 502;
-
-      return res.status(status).json({
-        success: false,
-        message:
-          "Unable to retrieve the encrypted certificate from IPFS storage",
-      });
-    }
-
-    let pdfBuffer;
-    try {
-      pdfBuffer = decryptBuffer({
-        encryptedBuffer,
-        iv: certificate.ipfsEncryptionIv,
-        authTag: certificate.ipfsEncryptionAuthTag,
-      });
-    } catch (decryptError) {
-      console.error(
-        `Certificate decryption failure for ${certificate.certificateId}:`,
-        decryptError.message
-      );
-
-      return res.status(500).json({
-        success: false,
-        message: "Failed to decrypt certificate content",
-      });
-    }
-
-    // Confirm that the decrypted data is a PDF.
-    if (
-      !pdfBuffer ||
-      pdfBuffer.length < 5 ||
-      pdfBuffer.subarray(0, 5).toString("ascii") !== "%PDF-"
-    ) {
-      console.error(
-        `Decrypted content for ${certificate.certificateId} is not a valid PDF`
-      );
-
-      return res.status(500).json({
-        success: false,
-        message: "Decrypted content is not a valid PDF document",
-      });
-    }
-
-    res.setHeader("Content-Type", "application/pdf");
-
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${certificate.certificateId}.pdf"`
-    );
-
     res.setHeader("Cache-Control", "private, no-store");
 
-    return res.status(200).send(pdfBuffer);
+    // Fast in-memory PDF generation and streaming (~50ms)
+    await generateCertificatePdf(certificate, res, { isPublic: false });
   } catch (error) {
     console.error(
-      "Secure IPFS Certificate Download Error:",
+      "Authenticated Certificate PDF Download Error:",
       error.message
     );
 
     if (!res.headersSent) {
       return res.status(500).json({
         success: false,
-        message:
-          "Internal server error occurred while processing certificate download",
+        message: "Failed to generate certificate PDF",
       });
     }
   }
 };
 
 
-// =================================
+// =========================================================
+// 10. PUBLIC CERTIFICATE PDF DOWNLOAD (PUBLIC VERIFICATION)
+// =========================================================
+
+const downloadPublicCertificatePdf = async (req, res) => {
+  try {
+    const certificateId = String(
+      req.params.certificateId || ""
+    )
+      .trim()
+      .toUpperCase();
+
+    if (!certificateId) {
+      return res.status(400).send("Certificate ID is required");
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId,
+    });
+
+    if (!certificate) {
+      return res.status(404).send("Certificate not found");
+    }
+
+    // 1. Recalculate deterministic hash using exact same canonical fields as verifyCertificate()
+    const recalculatedHash = createCertificateHash({
+      certificateId: certificate.certificateId,
+      workerName: certificate.workerName,
+      employerName: certificate.employerName,
+      jobRole: certificate.jobRole,
+      salary: certificate.salary,
+      startDate: certificate.startDate,
+      endDate: certificate.endDate,
+    });
+
+    // 2. Check stored database hash matches recalculated hash
+    const hasStoredHash = Boolean(certificate.blockchainHash);
+    const dbHashMatches =
+      hasStoredHash &&
+      recalculatedHash.toLowerCase() ===
+        String(certificate.blockchainHash).toLowerCase();
+
+    // 3. Query on-chain record independently
+    let onChainRecord = null;
+    let rpcError = null;
+
+    try {
+      onChainRecord = await blockchainService.getCertificateFromBlockchain({
+        certificateId: certificate.certificateId,
+      });
+    } catch (err) {
+      rpcError = err;
+      console.error(
+        "Public PDF Blockchain Query Error:",
+        err.message
+      );
+    }
+
+    // If getCertificateFromBlockchain returned null and no exception was caught,
+    // probe RPC provider availability using verifyCertificateOnBlockchain.
+    // If the certificate is merely missing, the smart contract returns false cleanly.
+    // If the RPC provider is unavailable, verifyCertificateOnBlockchain throws.
+    if (!onChainRecord && !rpcError) {
+      try {
+        await blockchainService.verifyCertificateOnBlockchain({
+          certificateId: certificate.certificateId,
+          certificateHash: recalculatedHash,
+        });
+      } catch (probeError) {
+        rpcError = probeError;
+        console.error(
+          "Public PDF Blockchain RPC Probe Error:",
+          probeError.message
+        );
+      }
+    }
+
+    // 4. Determine verified status fail-closed
+    let verificationStatus = "Not Verified";
+    let isVerified = false;
+
+    if (rpcError) {
+      // Blockchain RPC or provider failure - verification cannot be completed
+      verificationStatus = "Verification Unavailable";
+      isVerified = false;
+    } else if (
+      dbHashMatches &&
+      onChainRecord &&
+      onChainRecord.exists === true &&
+      onChainRecord.certificateId === certificate.certificateId &&
+      typeof onChainRecord.certificateHash === "string" &&
+      onChainRecord.certificateHash.toLowerCase() === recalculatedHash.toLowerCase()
+    ) {
+      // All 5 checks passed: DB exists, hash matches DB, on-chain exists, ID matches, on-chain hash matches
+      verificationStatus = "Verified On-Chain";
+      isVerified = true;
+    } else {
+      // Definite mismatch, missing from on-chain, or not registered
+      verificationStatus = "Not Verified";
+      isVerified = false;
+    }
+
+    const safeFilename = `${certificate.certificateId}.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${safeFilename}"`
+    );
+
+    // Stream sanitized public PDF credential with independent verification claims
+    await generateCertificatePdf(certificate, res, {
+      isPublic: true,
+      verificationStatus,
+      isVerified,
+    });
+  } catch (error) {
+    console.error("Public PDF Download Error:", error);
+
+    if (!res.headersSent) {
+      res.status(500).send("Failed to generate PDF certificate");
+    }
+  }
+};
+
+
+// =========================================================
 // EXPORT CONTROLLERS
-// =================================
+// =========================================================
 
 module.exports = {
   createCertificate,
@@ -1205,6 +1029,5 @@ module.exports = {
   getCertificateHash,
   syncCertificateWithBlockchain,
   downloadCertificatePdf,
-  downloadEncryptedCertificatePdf,
-  retryCertificateIpfsUpload,
+  downloadPublicCertificatePdf,
 };

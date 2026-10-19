@@ -1452,13 +1452,11 @@ function VerifyCertificate() {
                         </span>
 
                         <span className="vw-cert-detail-value">
-                          ₹
                           {certificate.salary
-                            ? Number(
-                              certificate.salary
-                            ).toLocaleString("en-IN")
-                            : "N/A"}
-                          /mo
+                            ? `₹${Number(
+                                certificate.salary
+                              ).toLocaleString("en-IN")}/mo`
+                            : "Protected (Privacy Active)"}
                         </span>
                       </div>
 

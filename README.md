@@ -1,6 +1,6 @@
 # VeriWork — Verifiable Work Identity for Informal Domestic Workers
 
-VeriWork is a decentralized platform that helps informal domestic workers (housekeepers, cooks, caregivers, drivers) build tamper-proof, cryptographically verifiable employment credentials, ratings, and digital certificates on the Ethereum Sepolia blockchain and IPFS.
+VeriWork is a decentralized platform that helps informal domestic workers (housekeepers, cooks, caregivers, drivers) build tamper-proof, cryptographically verifiable employment credentials, ratings, and digital certificates anchored on the Ethereum Sepolia blockchain.
 
 ---
 
@@ -19,9 +19,9 @@ VeriWork is a decentralized platform that helps informal domestic workers (house
                └──────────────┬───────────────────┬─────────────────────┘
                               │                   │
                ┌──────────────▼──────┐     ┌──────▼─────────────────────┐
-               │    MongoDB Atlas    │     │   Pinata IPFS Gateway      │
-               │   User Profiles,    │     │   AES-256-GCM Encrypted    │
-               │   Jobs & Ratings    │     │      Certificate PDFs      │
+               │    MongoDB Atlas    │     │   On-Demand PDF Engine     │
+               │   User Profiles,    │     │   PDFKit In-Memory Stream  │
+               │   Jobs & Ratings    │     │   Role-Based Authorization │
                └─────────────────────┘     └────────────────────────────┘
                               │
                ┌──────────────▼─────────────────────────────────────────┐
@@ -35,15 +35,14 @@ VeriWork is a decentralized platform that helps informal domestic workers (house
 
 ## 🔐 Security & Cryptography
 
-1. **Certificate Encryption at Rest (AES-256-GCM)**:
-   - Generated certificate PDFs are encrypted before uploading to IPFS.
-   - Each certificate uses a cryptographically secure 12-byte initialization vector (`iv`) and 16-byte authentication tag (`authTag`).
-   - Private certificate PDFs stored on IPFS cannot be read by public gateway scrapers.
+1. **On-Demand Fast PDF Streaming**:
+   - Certificate PDFs are generated dynamically in server memory using PDFKit (~50ms) and streamed directly to clients.
+   - Eliminates third-party storage latency, gateway downtime, and external rate limits.
 
-2. **Authenticated Access Control**:
-   - The backend endpoint `/api/certificates/:certificateId/download-pdf` enforces strict authentication.
-   - Only the worker who earned the certificate or the issuing employer can request decrypted binary streams.
-   - Decryption occurs in server memory and is streamed directly as `application/pdf`.
+2. **Strict Authenticated Access Control**:
+   - The backend endpoint `/api/certificates/download/:certificateId` enforces strict JWT authentication (`protect` middleware).
+   - Only the worker who earned the certificate or the issuing employer can download the official private certificate with salary details.
+   - Public verification downloads (`/api/certificates/download-pdf/:certificateId`) deliver a sanitized document that conceals private compensation data.
 
 3. **Tamper-Proof Blockchain Anchoring**:
    - The cryptographic SHA-256 hash of each certificate is registered on the Ethereum Sepolia smart contract.
@@ -63,7 +62,6 @@ VeriWork is a decentralized platform that helps informal domestic workers (house
 | **Backend API** | Render Web Service | `https://veriwork-e4th.onrender.com` |
 | **Network** | Ethereum Sepolia Testnet | Chain ID: `11155111` |
 | **Smart Contract** | VeriWorkCertificate.sol | [`0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965`](https://sepolia.etherscan.io/address/0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965) |
-| **IPFS Gateway** | Pinata Dedicated Gateway | `https://white-leading-marmot-708.mypinata.cloud` |
 
 ---
 
@@ -111,15 +109,6 @@ ADMIN_API_KEY=your_secure_admin_passkey_for_governance
 BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
 BLOCKCHAIN_PRIVATE_KEY=your_relayer_or_owner_private_key
 BLOCKCHAIN_CONTRACT_ADDRESS=0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965
-
-# Pinata IPFS
-PINATA_JWT=your_pinata_api_jwt_token
-PINATA_GATEWAY_URL=https://white-leading-marmot-708.mypinata.cloud
-PINATA_GATEWAY_TOKEN=optional_gateway_access_token
-
-# AES-256-GCM Certificate Encryption
-# 32-byte Base64-encoded key. NEVER replace if existing certificates are stored!
-IPFS_ENCRYPTION_KEY=your_base64_encoded_32_byte_aes_key
 ```
 
 ### Frontend Configuration (`.env`)
@@ -148,7 +137,7 @@ cd ..
 ### 2. Run Automated Test Suites
 
 ```bash
-# Run server test suites (33 tests covering AES-256-GCM, IPFS Pinata V3, RBAC, Admin)
+# Run server test suites (covering on-demand streaming, RBAC ownership, and admin security)
 cd server
 npm test
 ```

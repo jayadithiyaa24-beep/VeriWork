@@ -12,8 +12,7 @@ const {
   getCertificateHash,
   syncCertificateWithBlockchain,
   downloadCertificatePdf,
-  downloadEncryptedCertificatePdf,
-  retryCertificateIpfsUpload,
+  downloadPublicCertificatePdf,
 } = require("../controllers/certificateController");
 
 const {
@@ -21,20 +20,33 @@ const {
   authorize,
 } = require("../middleware/authMiddleware");
 
-// PUBLIC
-router.get("/verify/:certificateId", verifyCertificate);
-router.get("/download-pdf/:certificateId", downloadCertificatePdf);
+// =========================================================
+// PUBLIC ENDPOINTS
+// =========================================================
 
-// AUTHENTICATED IPFS DOWNLOAD
-// The controller checks whether the logged-in user
-// is the employer or worker associated with the certificate.
+// Public verification details (redacted privacy metadata)
+router.get("/verify/:certificateId", verifyCertificate);
+
+// Public PDF download for external verifiers and employers
+router.get("/download-pdf/:certificateId", downloadPublicCertificatePdf);
+
+
+// =========================================================
+// AUTHENTICATED CERTIFICATE DOWNLOADS (ON-DEMAND STREAMING)
+// =========================================================
+
+// Authenticated private PDF download (strictly for associated worker or employer)
 router.get(
-  "/download-ipfs/:certificateId",
+  "/download/:certificateId",
   protect,
-  downloadEncryptedCertificatePdf
+  downloadCertificatePdf
 );
 
-// EMPLOYER
+
+// =========================================================
+// EMPLOYER WORKFLOW & BLOCKCHAIN INTEGRATION
+// =========================================================
+
 router.get(
   "/hash/:certificateId",
   protect,
@@ -70,13 +82,6 @@ router.post(
   registerExistingCertificateOnBlockchain
 );
 
-router.post(
-  "/retry-ipfs/:certificateId",
-  protect,
-  authorize("employer"),
-  retryCertificateIpfsUpload
-);
-
 router.get(
   "/employer",
   protect,
@@ -84,7 +89,11 @@ router.get(
   getEmployerCertificates
 );
 
-// WORKER
+
+// =========================================================
+// WORKER ENDPOINTS
+// =========================================================
+
 router.get(
   "/worker",
   protect,

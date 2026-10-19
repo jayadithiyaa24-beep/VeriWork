@@ -4,7 +4,7 @@ const QRCode = require("qrcode");
 const SMART_CONTRACT_ADDRESS =
   process.env.BLOCKCHAIN_CONTRACT_ADDRESS || "Not configured";
 
-async function createCertificateDocument(certificate) {
+async function createCertificateDocument(certificate, options = {}) {
   const doc = new PDFDocument({
     size: "A4",
     layout: "landscape",
@@ -172,11 +172,33 @@ async function createCertificateDocument(certificate) {
 
   renderCol("Tenure Start", formatDate(certificate.startDate), 0);
   renderCol("Tenure End", formatDate(certificate.endDate), 1);
-  renderCol(
-    "Monthly Salary",
-    `Rs. ${Number(certificate.salary || 0).toLocaleString("en-IN")}`,
-    2
-  );
+  if (options && options.isPublic) {
+    let publicVerificationLabel = "Not Verified";
+
+    if (
+      options.verificationStatus === "Verified On-Chain" &&
+      options.isVerified === true
+    ) {
+      publicVerificationLabel = "Verified On-Chain";
+    } else if (
+      options.verificationStatus === "Verification Unavailable" &&
+      options.isVerified !== true
+    ) {
+      publicVerificationLabel = "Verification Unavailable";
+    } else {
+      publicVerificationLabel = "Not Verified";
+    }
+
+    renderCol("Verification", publicVerificationLabel, 2);
+  } else {
+    renderCol(
+      "Monthly Salary",
+      certificate.salary
+        ? `Rs. ${Number(certificate.salary).toLocaleString("en-IN")}`
+        : "Confidential",
+      2
+    );
+  }
   renderCol("Issue Date", formatDate(certificate.issuedAt), 3);
 
   // QR verification code
@@ -223,40 +245,98 @@ async function createCertificateDocument(certificate) {
   doc.rect(ledgerX, bottomY - 5, ledgerWidth, 90)
     .fillAndStroke("#0f172a", "#334155");
 
+  const isPublicDoc = Boolean(options && options.isPublic);
+
+  let isVerified = false;
+  let auditStatusText = "";
+  let statusColor = "#facc15";
+
+  if (isPublicDoc) {
+    if (
+      options.verificationStatus === "Verified On-Chain" &&
+      options.isVerified === true
+    ) {
+      isVerified = true;
+      auditStatusText = "VERIFIED ON-CHAIN (ETHEREUM SEPOLIA)";
+      statusColor = "#22c55e";
+    } else if (
+      options.verificationStatus === "Verification Unavailable" &&
+      options.isVerified !== true
+    ) {
+      isVerified = false;
+      auditStatusText = "VERIFICATION UNAVAILABLE (RPC ERROR)";
+      statusColor = "#facc15";
+    } else {
+      isVerified = false;
+      auditStatusText = "NOT VERIFIED ON-CHAIN";
+      statusColor = "#ef4444";
+    }
+  } else {
+    // Authenticated download
+    isVerified =
+      options.isVerified !== undefined
+        ? Boolean(options.isVerified)
+        : certificate.verificationStatus === "Verified" &&
+          Boolean(certificate.blockchainHash);
+    auditStatusText = isVerified
+      ? "VERIFIED IN VERIWORK RECORD"
+      : "VERIFICATION REQUIRED";
+    statusColor = isVerified ? "#22c55e" : "#facc15";
+  }
+
+  const proofTitle = isPublicDoc && !isVerified
+    ? (options.verificationStatus === "Verification Unavailable"
+        ? "ETHEREUM SMART CONTRACT AUDIT (UNAVAILABLE)"
+        : "ETHEREUM SMART CONTRACT AUDIT (UNVERIFIED)")
+    : "ETHEREUM SMART CONTRACT CRYPTOGRAPHIC PROOF";
+
   doc.fillColor("#38bdf8").fontSize(7.5).font("Courier-Bold")
-    .text("ETHEREUM SMART CONTRACT CRYPTOGRAPHIC PROOF",
-      ledgerX + 10, bottomY + 2);
+    .text(proofTitle, ledgerX + 10, bottomY + 2);
 
   doc.fillColor("#94a3b8").fontSize(6.8).font("Courier")
     .text(`Certificate ID : ${certificate.certificateId}`,
       ledgerX + 10, bottomY + 16);
 
-  doc.text(`Keccak-256 Hash : ${certificate.blockchainHash || "Not available"
-    }`, ledgerX + 10, bottomY + 28);
+  let hashDisplay = certificate.blockchainHash || "Not available";
+  if (isPublicDoc && !isVerified) {
+    if (options.verificationStatus === "Verification Unavailable") {
+      hashDisplay = certificate.blockchainHash
+        ? `${certificate.blockchainHash.slice(0, 32)}... (Unconfirmed)`
+        : "Not available";
+    } else {
+      hashDisplay = certificate.blockchainHash
+        ? `${certificate.blockchainHash.slice(0, 32)}... (Unverified DB Record)`
+        : "Not registered on blockchain";
+    }
+  }
+
+  doc.text(`Keccak-256 Hash : ${hashDisplay}`, ledgerX + 10, bottomY + 28);
 
   doc.text(`Contract Addr  : ${SMART_CONTRACT_ADDRESS}`,
     ledgerX + 10, bottomY + 40);
 
   const txHash = certificate.blockchainTransactionHash;
-  const txText = txHash
+  let txText = txHash
     ? txHash.length > 55
       ? `${txHash.slice(0, 52)}...`
       : txHash
     : "Transaction hash unavailable";
 
+  if (isPublicDoc && !isVerified) {
+    if (options.verificationStatus === "Verification Unavailable") {
+      txText = txHash ? `${txHash.slice(0, 32)}... (Unconfirmed)` : "Unconfirmed";
+    } else {
+      txText = txHash ? `${txHash.slice(0, 32)}... (Unverified DB Record)` : "Not registered on blockchain";
+    }
+  }
+
   doc.text(`Transaction    : ${txText}`,
     ledgerX + 10, bottomY + 52);
 
-  const isVerified =
-    certificate.verificationStatus === "Verified" &&
-    Boolean(certificate.blockchainHash);
-
-  doc.fillColor(isVerified ? "#22c55e" : "#facc15")
+  doc.fillColor(statusColor)
     .font("Courier-Bold")
     .text(
-      isVerified
-        ? "Audit Status   : VERIFIED IN VERIWORK RECORD"
-        : "Audit Status   : VERIFICATION REQUIRED",
+      `Audit Status   : ${auditStatusText}`,
       ledgerX + 10,
       bottomY + 66
     );
@@ -293,17 +373,17 @@ async function createCertificateDocument(certificate) {
  * Existing API: stream the PDF to the caller.
  * The caller remains responsible for ending the destination stream.
  */
-async function generateCertificatePdf(certificate, outputStream) {
-  const doc = await createCertificateDocument(certificate);
+async function generateCertificatePdf(certificate, outputStream, options = {}) {
+  const doc = await createCertificateDocument(certificate, options);
   doc.pipe(outputStream);
   doc.end();
 }
 
 /**
- * New API: return the complete PDF as a Buffer for encryption.
+ * Return the complete PDF as a Buffer (e.g. for testing or memory operations).
  */
-async function generateCertificatePdfBuffer(certificate) {
-  const doc = await createCertificateDocument(certificate);
+async function generateCertificatePdfBuffer(certificate, options = {}) {
+  const doc = await createCertificateDocument(certificate, options);
 
   return new Promise((resolve, reject) => {
     const chunks = [];

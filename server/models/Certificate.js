@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const certificateSchema = new mongoose.Schema(
@@ -84,7 +83,12 @@ const certificateSchema = new mongoose.Schema(
       default: null,
     },
 
-    // IPFS storage metadata
+    // ==============================================================
+    // LEGACY / COMPATIBILITY FIELDS (Retained for historical records)
+    // Note: Active certificate generation and downloads are streamed
+    // directly on-demand from the backend without Pinata/IPFS.
+    // ==============================================================
+
     ipfsCid: {
       type: String,
       default: null,
@@ -106,8 +110,6 @@ const certificateSchema = new mongoose.Schema(
       default: null,
     },
 
-    // AES-256-GCM encryption metadata
-    // These values are not the encryption key.
     ipfsEncryptionAlgorithm: {
       type: String,
       enum: ["aes-256-gcm", null],
