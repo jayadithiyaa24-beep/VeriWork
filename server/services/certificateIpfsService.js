@@ -13,6 +13,14 @@ async function uploadCertificatePdfToIPFS(certificate) {
     // 1. Generate the complete certificate PDF in memory.
     const pdfBuffer = await generateCertificatePdfBuffer(certificate);
 
+    if (
+        !Buffer.isBuffer(pdfBuffer) ||
+        pdfBuffer.length < 5 ||
+        pdfBuffer.subarray(0, 5).toString("ascii") !== "%PDF-"
+    ) {
+        throw new Error("Failed to generate a valid certificate PDF buffer");
+    }
+
     // 2. Encrypt the PDF before sending it to IPFS.
     const encrypted = encryptBuffer(pdfBuffer);
 
@@ -22,6 +30,10 @@ async function uploadCertificatePdfToIPFS(certificate) {
         filename: `${certificate.certificateId}.pdf.enc`,
         contentType: "application/octet-stream",
     });
+
+    if (!upload || !upload.cid) {
+        throw new Error("IPFS upload succeeded but returned an invalid CID");
+    }
 
     // 4. Return the metadata needed for MongoDB.
     return {

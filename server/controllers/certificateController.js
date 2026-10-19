@@ -1,4 +1,4 @@
-﻿const crypto = require("crypto");
+const crypto = require("crypto");
 
 const Certificate = require("../models/Certificate");
 const Employment = require("../models/Employment");
@@ -1089,10 +1089,10 @@ const downloadEncryptedCertificatePdf = async (req, res) => {
       certificate.ipfsStatus !== "Uploaded" ||
       !certificate.ipfsCid
     ) {
-      return res.status(404).json({
+      return res.status(409).json({
         success: false,
         message:
-          "The encrypted certificate PDF is not available on IPFS",
+          "The encrypted certificate PDF has not yet been uploaded to IPFS",
       });
     }
 
@@ -1108,24 +1108,60 @@ const downloadEncryptedCertificatePdf = async (req, res) => {
       });
     }
 
-    const encryptedBuffer = await downloadFromIPFS(
-      certificate.ipfsCid
-    );
+    let encryptedBuffer;
+    try {
+      encryptedBuffer = await downloadFromIPFS(
+        certificate.ipfsCid
+      );
+    } catch (ipfsError) {
+      console.error(
+        `Upstream IPFS download failure for ${certificate.certificateId}:`,
+        ipfsError.message
+      );
 
-    const pdfBuffer = decryptBuffer({
-      encryptedBuffer,
-      iv: certificate.ipfsEncryptionIv,
-      authTag: certificate.ipfsEncryptionAuthTag,
-    });
+      const status =
+        ipfsError.statusCode === 503 ? 503 : 502;
+
+      return res.status(status).json({
+        success: false,
+        message:
+          "Unable to retrieve the encrypted certificate from IPFS storage",
+      });
+    }
+
+    let pdfBuffer;
+    try {
+      pdfBuffer = decryptBuffer({
+        encryptedBuffer,
+        iv: certificate.ipfsEncryptionIv,
+        authTag: certificate.ipfsEncryptionAuthTag,
+      });
+    } catch (decryptError) {
+      console.error(
+        `Certificate decryption failure for ${certificate.certificateId}:`,
+        decryptError.message
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to decrypt certificate content",
+      });
+    }
 
     // Confirm that the decrypted data is a PDF.
     if (
+      !pdfBuffer ||
       pdfBuffer.length < 5 ||
       pdfBuffer.subarray(0, 5).toString("ascii") !== "%PDF-"
     ) {
-      throw new Error(
-        "Decrypted content is not a valid PDF"
+      console.error(
+        `Decrypted content for ${certificate.certificateId} is not a valid PDF`
       );
+
+      return res.status(500).json({
+        success: false,
+        message: "Decrypted content is not a valid PDF document",
+      });
     }
 
     res.setHeader("Content-Type", "application/pdf");
@@ -1145,10 +1181,10 @@ const downloadEncryptedCertificatePdf = async (req, res) => {
     );
 
     if (!res.headersSent) {
-      return res.status(502).json({
+      return res.status(500).json({
         success: false,
         message:
-          "Unable to retrieve and decrypt the certificate PDF",
+          "Internal server error occurred while processing certificate download",
       });
     }
   }
