@@ -1,4 +1,3 @@
-
 const express = require("express");
 
 const router = express.Router();
@@ -13,6 +12,7 @@ const {
   getCertificateHash,
   syncCertificateWithBlockchain,
   downloadCertificatePdf,
+  downloadEncryptedCertificatePdf,
   retryCertificateIpfsUpload,
 } = require("../controllers/certificateController");
 
@@ -21,27 +21,20 @@ const {
   authorize,
 } = require("../middleware/authMiddleware");
 
-// =================================
-// PUBLIC ROUTES
-// =================================
+// PUBLIC
+router.get("/verify/:certificateId", verifyCertificate);
+router.get("/download-pdf/:certificateId", downloadCertificatePdf);
 
-// Verify certificate using Certificate ID
+// AUTHENTICATED IPFS DOWNLOAD
+// The controller checks whether the logged-in user
+// is the employer or worker associated with the certificate.
 router.get(
-  "/verify/:certificateId",
-  verifyCertificate
+  "/download-ipfs/:certificateId",
+  protect,
+  downloadEncryptedCertificatePdf
 );
 
-// Download Official PDF Certificate with QR Code
-router.get(
-  "/download-pdf/:certificateId",
-  downloadCertificatePdf
-);
-
-// =================================
-// EMPLOYER ROUTES
-// =================================
-
-// Get certificate hash for MetaMask registration
+// EMPLOYER
 router.get(
   "/hash/:certificateId",
   protect,
@@ -49,7 +42,6 @@ router.get(
   getCertificateHash
 );
 
-// Create work certificate
 router.post(
   "/create",
   protect,
@@ -57,7 +49,6 @@ router.post(
   createCertificate
 );
 
-// Confirm MetaMask blockchain registration
 router.post(
   "/confirm-blockchain/:certificateId",
   protect,
@@ -65,7 +56,6 @@ router.post(
   confirmBlockchainRegistration
 );
 
-// Sync already registered certificate with blockchain
 router.post(
   "/sync/:certificateId",
   protect,
@@ -73,7 +63,6 @@ router.post(
   syncCertificateWithBlockchain
 );
 
-// Register an existing certificate on the blockchain
 router.post(
   "/register-blockchain/:certificateId",
   protect,
@@ -81,7 +70,6 @@ router.post(
   registerExistingCertificateOnBlockchain
 );
 
-// Retry uploading an encrypted certificate PDF to IPFS
 router.post(
   "/retry-ipfs/:certificateId",
   protect,
@@ -89,7 +77,6 @@ router.post(
   retryCertificateIpfsUpload
 );
 
-// Get employer's certificates
 router.get(
   "/employer",
   protect,
@@ -97,11 +84,7 @@ router.get(
   getEmployerCertificates
 );
 
-// =================================
-// WORKER ROUTES
-// =================================
-
-// Get worker's certificates
+// WORKER
 router.get(
   "/worker",
   protect,

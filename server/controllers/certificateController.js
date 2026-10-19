@@ -18,6 +18,14 @@ const {
   generateCertificatePdf,
 } = require("../services/pdfService");
 
+const {
+  decryptBuffer,
+} = require("../services/encryptionService");
+
+const {
+  downloadFromIPFS,
+} = require("../services/ipfsService");
+
 
 // =================================
 // IPFS CERTIFICATE UPLOAD HELPER
@@ -982,7 +990,7 @@ const retryCertificateIpfsUpload = async (req, res) => {
 
 
 // =================================
-// DOWNLOAD CERTIFICATE PDF
+// DOWNLOAD PUBLIC CERTIFICATE PDF
 // =================================
 
 const downloadCertificatePdf = async (req, res) => {
@@ -1029,6 +1037,125 @@ const downloadCertificatePdf = async (req, res) => {
 
 
 // =================================
+// SECURE IPFS CERTIFICATE DOWNLOAD
+// =================================
+
+const downloadEncryptedCertificatePdf = async (req, res) => {
+  try {
+    const certificateId = String(
+      req.params.certificateId || ""
+    )
+      .trim()
+      .toUpperCase();
+
+    if (!certificateId) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate ID is required",
+      });
+    }
+
+    const certificate = await Certificate.findOne({
+      certificateId,
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    const userId = String(req.user.id);
+    const userRole = String(req.user.role).toLowerCase();
+
+    const isEmployer =
+      userRole === "employer" &&
+      certificate.employerId.toString() === userId;
+
+    const isWorker =
+      userRole === "worker" &&
+      certificate.workerId.toString() === userId;
+
+    if (!isEmployer && !isWorker) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You are not authorized to download this certificate",
+      });
+    }
+
+    if (
+      certificate.ipfsStatus !== "Uploaded" ||
+      !certificate.ipfsCid
+    ) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "The encrypted certificate PDF is not available on IPFS",
+      });
+    }
+
+    if (
+      certificate.ipfsEncryptionAlgorithm !== "aes-256-gcm" ||
+      !certificate.ipfsEncryptionIv ||
+      !certificate.ipfsEncryptionAuthTag
+    ) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Certificate encryption metadata is incomplete",
+      });
+    }
+
+    const encryptedBuffer = await downloadFromIPFS(
+      certificate.ipfsCid
+    );
+
+    const pdfBuffer = decryptBuffer({
+      encryptedBuffer,
+      iv: certificate.ipfsEncryptionIv,
+      authTag: certificate.ipfsEncryptionAuthTag,
+    });
+
+    // Confirm that the decrypted data is a PDF.
+    if (
+      pdfBuffer.length < 5 ||
+      pdfBuffer.subarray(0, 5).toString("ascii") !== "%PDF-"
+    ) {
+      throw new Error(
+        "Decrypted content is not a valid PDF"
+      );
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${certificate.certificateId}.pdf"`
+    );
+
+    res.setHeader("Cache-Control", "private, no-store");
+
+    return res.status(200).send(pdfBuffer);
+  } catch (error) {
+    console.error(
+      "Secure IPFS Certificate Download Error:",
+      error.message
+    );
+
+    if (!res.headersSent) {
+      return res.status(502).json({
+        success: false,
+        message:
+          "Unable to retrieve and decrypt the certificate PDF",
+      });
+    }
+  }
+};
+
+
+// =================================
 // EXPORT CONTROLLERS
 // =================================
 
@@ -1042,5 +1169,6 @@ module.exports = {
   getCertificateHash,
   syncCertificateWithBlockchain,
   downloadCertificatePdf,
+  downloadEncryptedCertificatePdf,
   retryCertificateIpfsUpload,
 };
