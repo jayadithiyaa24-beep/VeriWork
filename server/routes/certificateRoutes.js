@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const router = express.Router();
@@ -12,13 +13,13 @@ const {
   getCertificateHash,
   syncCertificateWithBlockchain,
   downloadCertificatePdf,
+  retryCertificateIpfsUpload,
 } = require("../controllers/certificateController");
 
 const {
   protect,
   authorize,
 } = require("../middleware/authMiddleware");
-
 
 // =================================
 // PUBLIC ROUTES
@@ -36,7 +37,6 @@ router.get(
   downloadCertificatePdf
 );
 
-
 // =================================
 // EMPLOYER ROUTES
 // =================================
@@ -50,14 +50,12 @@ router.get(
 );
 
 // Create work certificate
-
 router.post(
   "/create",
   protect,
   authorize("employer"),
   createCertificate
 );
-
 
 // Confirm MetaMask blockchain registration
 router.post(
@@ -75,10 +73,7 @@ router.post(
   syncCertificateWithBlockchain
 );
 
-
-// Register an existing certificate
-// on the blockchain
-
+// Register an existing certificate on the blockchain
 router.post(
   "/register-blockchain/:certificateId",
   protect,
@@ -86,9 +81,15 @@ router.post(
   registerExistingCertificateOnBlockchain
 );
 
+// Retry uploading an encrypted certificate PDF to IPFS
+router.post(
+  "/retry-ipfs/:certificateId",
+  protect,
+  authorize("employer"),
+  retryCertificateIpfsUpload
+);
 
 // Get employer's certificates
-
 router.get(
   "/employer",
   protect,
@@ -96,19 +97,16 @@ router.get(
   getEmployerCertificates
 );
 
-
 // =================================
 // WORKER ROUTES
 // =================================
 
 // Get worker's certificates
-
 router.get(
   "/worker",
   protect,
   authorize("worker"),
   getWorkerCertificates
 );
-
 
 module.exports = router;

@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const certificateSchema = new mongoose.Schema(
@@ -79,6 +80,46 @@ const certificateSchema = new mongoose.Schema(
     },
 
     blockchainTransactionHash: {
+      type: String,
+      default: null,
+    },
+
+    // IPFS storage metadata
+    ipfsCid: {
+      type: String,
+      default: null,
+    },
+
+    ipfsUrl: {
+      type: String,
+      default: null,
+    },
+
+    ipfsStatus: {
+      type: String,
+      enum: ["Pending", "Uploaded", "Failed"],
+      default: "Pending",
+    },
+
+    ipfsUploadedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // AES-256-GCM encryption metadata
+    // These values are not the encryption key.
+    ipfsEncryptionAlgorithm: {
+      type: String,
+      enum: ["aes-256-gcm", null],
+      default: null,
+    },
+
+    ipfsEncryptionIv: {
+      type: String,
+      default: null,
+    },
+
+    ipfsEncryptionAuthTag: {
       type: String,
       default: null,
     },
