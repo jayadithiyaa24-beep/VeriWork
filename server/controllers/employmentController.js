@@ -6,38 +6,112 @@ const Worker = require("../models/Worker");
 // CONFLICT & AVAILABILITY HELPERS
 // =================================
 
-const checkDateConflict = (existing, targetStartDate, targetEndDate) => {
-  const exStart = new Date(existing.startDate);
-  const exEnd = existing.endDate ? new Date(existing.endDate) : null;
-  const targetStart = new Date(targetStartDate);
-  const targetEnd = targetEndDate ? new Date(targetEndDate) : null;
+// Convert "HH:MM" (or "6:00 PM") to total minutes from midnight
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr || typeof timeStr !== "string") return null;
+  const trimmed = timeStr.trim().toUpperCase();
 
-  if (isNaN(targetStart.getTime())) return false;
-
-  // Active employment (currently ongoing)
-  if (existing.status === "Active") {
-    if (!exEnd) {
-      // Ongoing with no set end date
-      if (targetStart >= exStart) return true;
-      if (targetEnd && targetEnd >= exStart) return true;
-      if (!targetEnd) return true;
-    } else {
-      // Active with a designated end date
-      if (targetEnd) {
-        if (targetStart <= exEnd && targetEnd >= exStart) return true;
-      } else {
-        if (targetStart <= exEnd) return true;
-      }
+  // Check 12-hour AM/PM format (e.g. "6:00 PM", "06:00 PM", "6 PM")
+  const ampmMatch = trimmed.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+  if (ampmMatch) {
+    let hours = parseInt(ampmMatch[1], 10);
+    const minutes = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
+    const isPM = ampmMatch[3] === "PM";
+    if (hours === 12) {
+      hours = isPM ? 12 : 0;
+    } else if (isPM) {
+      hours += 12;
     }
-  } else if (existing.status === "Completed" && exEnd) {
-    if (targetEnd) {
-      if (targetStart <= exEnd && targetEnd >= exStart) return true;
-    } else {
-      if (targetStart >= exStart && targetStart <= exEnd) return true;
+    return hours * 60 + minutes;
+  }
+
+  // Check 24-hour format "HH:MM"
+  const match24 = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    const hours = parseInt(match24[1], 10);
+    const minutes = parseInt(match24[2], 10);
+    if (hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60) {
+      return hours * 60 + minutes;
     }
   }
 
-  return false;
+  return null;
+};
+
+// Format time string to 12-hour AM/PM (e.g. "6:00 PM")
+const formatTime12h = (timeStr) => {
+  const mins = parseTimeToMinutes(timeStr);
+  if (mins === null) return timeStr || "";
+  let hours = Math.floor(mins / 60);
+  const minutes = mins % 60;
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const minPad = minutes < 10 ? `0${minutes}` : `${minutes}`;
+  return `${hours}:${minPad} ${ampm}`;
+};
+
+// Check if two calendar date ranges overlap
+const checkDateRangeOverlap = (d1Start, d1End, d2Start, d2End, d1Active, d2Active) => {
+  const start1 = new Date(d1Start);
+  const start2 = new Date(d2Start);
+  if (isNaN(start1.getTime()) || isNaN(start2.getTime())) return false;
+
+  const s1 = new Date(start1.getFullYear(), start1.getMonth(), start1.getDate()).getTime();
+  const s2 = new Date(start2.getFullYear(), start2.getMonth(), start2.getDate()).getTime();
+
+  const end1 = d1End
+    ? new Date(new Date(d1End).getFullYear(), new Date(d1End).getMonth(), new Date(d1End).getDate()).getTime()
+    : (d1Active ? Infinity : s1);
+
+  const end2 = d2End
+    ? new Date(new Date(d2End).getFullYear(), new Date(d2End).getMonth(), new Date(d2End).getDate()).getTime()
+    : (d2Active ? Infinity : s2);
+
+  return s1 <= end2 && s2 <= end1;
+};
+
+// Check if two daily time windows overlap (e.g. 18:00-19:00 vs 09:00-17:00)
+const checkTimeWindowOverlap = (timeAStart, timeAEnd, timeBStart, timeBEnd) => {
+  const sA = parseTimeToMinutes(timeAStart);
+  const eA = parseTimeToMinutes(timeAEnd);
+  const sB = parseTimeToMinutes(timeBStart);
+  const eB = parseTimeToMinutes(timeBEnd);
+
+  // If no time is set on the existing or new job, default fallback to standard working window (09:00 - 17:00)
+  const actualSA = sA !== null ? sA : 9 * 60;
+  const actualEA = eA !== null ? eA : (actualSA + 60);
+  const actualSB = sB !== null ? sB : 9 * 60;
+  const actualEB = eB !== null ? eB : 17 * 60;
+
+  // Strict interval overlap: [actualSA, actualEA] and [actualSB, actualEB]
+  return actualSA < actualEB && actualEA > actualSB;
+};
+
+// Check both date AND time conflict
+const checkDateTimeConflict = (existing, targetStartDate, targetEndDate, targetStartTime, targetEndTime) => {
+  const dateOverlap = checkDateRangeOverlap(
+    existing.startDate,
+    existing.endDate,
+    targetStartDate,
+    targetEndDate,
+    existing.status === "Active",
+    !targetEndDate
+  );
+
+  if (!dateOverlap) {
+    return false; // Dates don't overlap at all -> No conflict
+  }
+
+  // Dates match/overlap! Now check time:
+  // If the date matches and time is different -> no problem!
+  // If the time also overlaps -> conflict!
+  return checkTimeWindowOverlap(
+    targetStartTime,
+    targetEndTime,
+    existing.startTime,
+    existing.endTime
+  );
 };
 
 const formatConflictDetails = (existing) => {
@@ -55,15 +129,22 @@ const formatConflictDetails = (existing) => {
       })
     : "Present (Ongoing)";
 
+  const existingTimeStr = existing.startTime && existing.endTime
+    ? `${formatTime12h(existing.startTime)} – ${formatTime12h(existing.endTime)}`
+    : "09:00 AM – 05:00 PM";
+
   return {
     isConflict: true,
     jobRole: existing.jobRole,
     employerName: employerName,
     startDate: existing.startDate,
     endDate: existing.endDate,
+    startTime: existing.startTime,
+    endTime: existing.endTime,
+    existingHours: existingTimeStr,
     status: existing.status,
     formattedPeriod: `${startFormatted} – ${endFormatted}`,
-    message: `Worker is already employed as "${existing.jobRole}" with ${employerName} (${startFormatted} – ${endFormatted}). Cannot recruit for overlapping dates.`,
+    message: `Worker is already hired at this time (${existingTimeStr}) by ${employerName} on overlapping dates (${startFormatted} – ${endFormatted}). Please give some other time.`,
   };
 };
 
@@ -84,6 +165,8 @@ const checkWorkerAvailability = async (req, res) => {
     const workerEmail = (req.body.workerEmail || req.query.workerEmail || "").trim().toLowerCase();
     const startDate = req.body.startDate || req.query.startDate;
     const endDate = req.body.endDate || req.query.endDate;
+    const startTime = req.body.startTime || req.query.startTime;
+    const endTime = req.body.endTime || req.query.endTime;
 
     if (!workerEmail) {
       return res.status(400).json({
@@ -108,32 +191,19 @@ const checkWorkerAvailability = async (req, res) => {
     }).populate("employerId", "employerName email phone");
 
     if (!startDate) {
-      // If no start date provided yet, check if worker has ANY currently active employment
-      const activeJob = existingEmployments.find((e) => e.status === "Active");
-      if (activeJob) {
-        const conflict = formatConflictDetails(activeJob);
-        return res.status(200).json({
-          success: true,
-          available: false,
-          workerFound: true,
-          workerName: worker.fullName,
-          conflict,
-          message: conflict.message,
-        });
-      }
-
+      // If no start date provided yet
       return res.status(200).json({
         success: true,
         available: true,
         workerFound: true,
         workerName: worker.fullName,
-        message: "Worker is currently not assigned to any active employment.",
+        message: "Worker found. Please enter requested dates and work hours.",
       });
     }
 
-    // Check specific date conflict
+    // Check date and time conflict
     const conflictingEmployment = existingEmployments.find((e) =>
-      checkDateConflict(e, startDate, endDate)
+      checkDateTimeConflict(e, startDate, endDate, startTime, endTime)
     );
 
     if (conflictingEmployment) {
@@ -148,12 +218,16 @@ const checkWorkerAvailability = async (req, res) => {
       });
     }
 
+    const requestedHours = startTime && endTime
+      ? ` at ${formatTime12h(startTime)} – ${formatTime12h(endTime)}`
+      : "";
+
     return res.status(200).json({
       success: true,
       available: true,
       workerFound: true,
       workerName: worker.fullName,
-      message: "Worker is free and available on the selected dates.",
+      message: `Worker is free and available during these requested hours${requestedHours}.`,
     });
   } catch (error) {
     console.error("Check Worker Availability Error:", error);
@@ -185,6 +259,8 @@ const createEmployment = async (req, res) => {
       salary,
       startDate,
       endDate,
+      startTime,
+      endTime,
     } = req.body;
 
     // Check required fields
@@ -196,8 +272,19 @@ const createEmployment = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "All employment fields are required",
+        message: "Worker email, job role, salary, and start date are required",
       });
+    }
+
+    if (startTime && endTime) {
+      const sM = parseTimeToMinutes(startTime);
+      const eM = parseTimeToMinutes(endTime);
+      if (sM !== null && eM !== null && sM >= eM) {
+        return res.status(400).json({
+          success: false,
+          message: "Daily work end time must be later than start time",
+        });
+      }
     }
 
     // Find worker using email (strictly shielding sensitive PII)
@@ -212,13 +299,13 @@ const createEmployment = async (req, res) => {
       });
     }
 
-    // Check for conflicting employment dates
+    // Check for conflicting employment dates and times
     const existingEmployments = await Employment.find({
       workerId: worker._id,
     }).populate("employerId", "employerName email");
 
     const conflictingEmployment = existingEmployments.find((e) =>
-      checkDateConflict(e, startDate, endDate)
+      checkDateTimeConflict(e, startDate, endDate, startTime, endTime)
     );
 
     if (conflictingEmployment) {
@@ -239,6 +326,8 @@ const createEmployment = async (req, res) => {
       salary,
       startDate,
       endDate: endDate || null,
+      startTime: startTime || null,
+      endTime: endTime || null,
       status: "Active",
       verificationStatus: "Pending",
     });
@@ -406,4 +495,11 @@ module.exports = {
   getEmployerEmployments,
   getWorkerEmployments,
   completeEmployment,
+  _helpers: {
+    parseTimeToMinutes,
+    formatTime12h,
+    checkDateRangeOverlap,
+    checkTimeWindowOverlap,
+    checkDateTimeConflict,
+  },
 };

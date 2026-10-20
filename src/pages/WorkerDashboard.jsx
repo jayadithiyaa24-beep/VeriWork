@@ -51,6 +51,18 @@ import RatingReviewsSection from "../components/RatingReviewsSection";
 function WorkerDashboard() {
   const navigate = useNavigate();
 
+  const formatTime12h = (time24) => {
+    if (!time24) return "";
+    const parts = time24.split(":");
+    let h = parseInt(parts[0], 10);
+    const m = parts[1] || "00";
+    if (isNaN(h)) return time24;
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${m} ${ampm}`;
+  };
+
   // =================================
   // STATE
   // =================================
@@ -1386,6 +1398,19 @@ function EmploymentCard({
               : "Currently employed"}
           </strong>
         </div>
+
+        {employment.startTime && employment.endTime && (
+          <div>
+            <span>
+              <FaClock />
+              Daily Hours
+            </span>
+
+            <strong>
+              {formatTime12h(employment.startTime)} – {formatTime12h(employment.endTime)}
+            </strong>
+          </div>
+        )}
 
       </div>
 

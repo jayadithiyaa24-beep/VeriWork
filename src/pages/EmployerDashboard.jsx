@@ -66,7 +66,23 @@ function EmployerDashboard() {
     jobRole: "",
     salary: "",
     startDate: "",
+    endDate: "",
+    startTime: "06:00",
+    endTime: "07:00",
   });
+
+  // Helper to format 24h time to 12h AM/PM
+  const formatTime12h = (time24) => {
+    if (!time24) return "";
+    const parts = time24.split(":");
+    let h = parseInt(parts[0], 10);
+    const m = parts[1] || "00";
+    if (isNaN(h)) return time24;
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${m} ${ampm}`;
+  };
 
   // Rating & Completion states
   const [completingEmployment, setCompletingEmployment] = useState(null);
@@ -408,7 +424,7 @@ function EmployerDashboard() {
   }, [navigate]);
 
   // =================================
-  // CHECK WORKER AVAILABILITY ON DATE / EMAIL CHANGE
+  // CHECK WORKER AVAILABILITY ON DATE / TIME / EMAIL CHANGE
   // =================================
 
   useEffect(() => {
@@ -425,21 +441,22 @@ function EmployerDashboard() {
         const res = await checkWorkerAvailability({
           workerEmail: formData.workerEmail,
           startDate: formData.startDate || undefined,
+          endDate: formData.endDate || undefined,
+          startTime: formData.startTime || undefined,
+          endTime: formData.endTime || undefined,
         });
 
         if (!res.available && res.conflict) {
           setAvailabilityConflict(res.conflict);
           setWorkerAvailabilityStatus("conflict");
           setWorkerAvailabilityMsg(
-            res.message || "Worker is already employed during these dates."
+            res.message || "Worker is already hired at this time. Please choose another time slot."
           );
         } else if (res.available) {
           setAvailabilityConflict(null);
           setWorkerAvailabilityStatus("available");
           setWorkerAvailabilityMsg(
-            formData.startDate
-              ? `✓ Worker is free and available to start on ${new Date(formData.startDate).toLocaleDateString()}`
-              : "✓ Worker is registered and currently available"
+            res.message || "✓ Worker is free and available during these requested hours."
           );
         }
       } catch (error) {
@@ -458,7 +475,13 @@ function EmployerDashboard() {
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [formData.workerEmail, formData.startDate]);
+  }, [
+    formData.workerEmail,
+    formData.startDate,
+    formData.endDate,
+    formData.startTime,
+    formData.endTime,
+  ]);
 
   // =================================
   // HANDLE FORM CHANGE
@@ -478,9 +501,14 @@ function EmployerDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
+      toast.error("Daily work end time must be later than start time.");
+      return;
+    }
+
     if (availabilityConflict) {
       toast.error(
-        `Cannot recruit: Worker is already working for ${availabilityConflict.employerName} during these dates (${availabilityConflict.formattedPeriod}).`
+        `Cannot recruit: Worker is already hired at this time (${availabilityConflict.existingHours || ""}) by ${availabilityConflict.employerName}. Please give some other time.`
       );
       return;
     }
@@ -507,6 +535,9 @@ function EmployerDashboard() {
         jobRole: "",
         salary: "",
         startDate: "",
+        endDate: "",
+        startTime: "06:00",
+        endTime: "07:00",
       });
 
       setAvailabilityConflict(null);
@@ -1206,10 +1237,10 @@ function EmployerDashboard() {
 
                   {/* Salary */}
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-4 mb-3">
 
                     <label className="form-label fw-bold">
-                      Salary
+                      Salary (Monthly ₹)
                     </label>
 
                     <input
@@ -1231,7 +1262,7 @@ function EmployerDashboard() {
 
                   {/* Start Date */}
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-4 mb-3">
 
                     <label className="form-label fw-bold">
                       Start Date
@@ -1259,15 +1290,112 @@ function EmployerDashboard() {
                       required
                     />
 
-                    {availabilityConflict ? (
-                      <div className="small text-danger fw-bold mt-1" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <span>⛔ Worker is already working on this date ({availabilityConflict.formattedPeriod})</span>
+                  </div>
+
+                  {/* End Date */}
+
+                  <div className="col-md-4 mb-3">
+
+                    <label className="form-label fw-bold">
+                      End Date <span className="small text-muted fw-normal">(Optional)</span>
+                    </label>
+
+                    <input
+                      type="date"
+                      name="endDate"
+                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      style={
+                        availabilityConflict
+                          ? {
+                              borderColor: "#DC2626",
+                              background: "#FFFBFB",
+                              boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.15)",
+                            }
+                          : {}
+                      }
+                      value={
+                        formData.endDate
+                      }
+                      onChange={
+                        handleChange
+                      }
+                    />
+
+                  </div>
+
+                  {/* Daily Work Start Time */}
+
+                  <div className="col-md-6 mb-3">
+
+                    <label className="form-label fw-bold">
+                      Daily Work Start Time
+                    </label>
+
+                    <input
+                      type="time"
+                      name="startTime"
+                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      style={
+                        availabilityConflict
+                          ? {
+                              borderColor: "#DC2626",
+                              background: "#FFFBFB",
+                              boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.15)",
+                            }
+                          : {}
+                      }
+                      value={
+                        formData.startTime
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      required
+                    />
+
+                    {formData.startTime && (
+                      <div className="small text-muted mt-1">
+                        Starts: <strong>{formatTime12h(formData.startTime)}</strong>
                       </div>
-                    ) : workerAvailabilityStatus === "available" && formData.startDate ? (
-                      <div className="small text-success fw-semibold mt-1">
-                        {workerAvailabilityMsg}
+                    )}
+
+                  </div>
+
+                  {/* Daily Work End Time */}
+
+                  <div className="col-md-6 mb-3">
+
+                    <label className="form-label fw-bold">
+                      Daily Work End Time
+                    </label>
+
+                    <input
+                      type="time"
+                      name="endTime"
+                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      style={
+                        availabilityConflict
+                          ? {
+                              borderColor: "#DC2626",
+                              background: "#FFFBFB",
+                              boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.15)",
+                            }
+                          : {}
+                      }
+                      value={
+                        formData.endTime
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      required
+                    />
+
+                    {formData.endTime && (
+                      <div className="small text-muted mt-1">
+                        Ends: <strong>{formatTime12h(formData.endTime)}</strong>
                       </div>
-                    ) : null}
+                    )}
 
                   </div>
 
@@ -1276,7 +1404,7 @@ function EmployerDashboard() {
                 {/* ========================================================
                     RED LINE PROMINENT CONFLICT BANNER
                 ======================================================== */}
-                {availabilityConflict && (
+                {availabilityConflict ? (
                   <div
                     className="vw-conflict-red-line-banner mb-4"
                     style={{
@@ -1296,15 +1424,15 @@ function EmployerDashboard() {
                         style={{
                           background: "#DC2626",
                           color: "#FFFFFF",
-                          width: "26px",
-                          height: "26px",
+                          width: "28px",
+                          height: "28px",
                           borderRadius: "50%",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           flexShrink: 0,
                           fontWeight: "800",
-                          fontSize: "13px",
+                          fontSize: "14px",
                           marginTop: "2px",
                         }}
                       >
@@ -1316,14 +1444,14 @@ function EmployerDashboard() {
                           style={{
                             color: "#991B1B",
                             fontWeight: "800",
-                            fontSize: "0.92rem",
+                            fontSize: "0.94rem",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
                             flexWrap: "wrap",
                           }}
                         >
-                          <span>WORKER ALREADY EMPLOYED DURING THESE DATES</span>
+                          <span>WORKER ALREADY HIRED AT THIS TIME</span>
                           <span
                             style={{
                               background: "#FEE2E2",
@@ -1335,24 +1463,28 @@ function EmployerDashboard() {
                               border: "1px solid #F87171",
                             }}
                           >
-                            DATE CONFLICT
+                            TIME & DATE OVERLAP
                           </span>
                         </div>
 
                         <p
                           style={{
-                            margin: "6px 0 10px",
+                            margin: "8px 0 10px",
                             color: "#7F1D1D",
-                            fontSize: "0.86rem",
+                            fontSize: "0.88rem",
                             lineHeight: "1.5",
                           }}
                         >
-                          This domestic worker is currently actively employed by{" "}
+                          This domestic worker is already hired at this time (
+                          <strong style={{ color: "#B91C1C" }}>
+                            {availabilityConflict.existingHours || "this time slot"}
+                          </strong>
+                          ) by{" "}
                           <strong style={{ color: "#991B1B" }}>
                             {availabilityConflict.employerName}
                           </strong>{" "}
                           as <em>"{availabilityConflict.jobRole}"</em> for the period{" "}
-                          <strong>{availabilityConflict.formattedPeriod}</strong>. You cannot recruit this worker during the same dates.
+                          <strong>{availabilityConflict.formattedPeriod}</strong>.
                         </p>
 
                         <div
@@ -1363,18 +1495,30 @@ function EmployerDashboard() {
                             background: "#FFFFFF",
                             border: "1px dashed #DC2626",
                             borderRadius: "6px",
-                            padding: "6px 12px",
-                            fontSize: "0.76rem",
+                            padding: "7px 14px",
+                            fontSize: "0.78rem",
                             color: "#991B1B",
-                            fontWeight: "600",
+                            fontWeight: "700",
                           }}
                         >
-                          <span>⛔ Recruitment Blocked:</span> Worker must be free and unassigned during your requested start date.
+                          <span>⛔ Recruitment Blocked:</span> Worker is already hired at this time. Please give some other time.
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                ) : workerAvailabilityStatus === "available" && formData.startDate ? (
+                  <div
+                    className="alert alert-success d-flex align-items-center mb-4 py-2 px-3"
+                    style={{ borderRadius: "8px", fontSize: "0.82rem" }}
+                  >
+                    <span className="me-2">✓</span>
+                    <span>
+                      {formData.startTime && formData.endTime
+                        ? `Time slot available! Worker is free between ${formatTime12h(formData.startTime)} and ${formatTime12h(formData.endTime)}.`
+                        : "Worker is free and available on this date."}
+                    </span>
+                  </div>
+                ) : null}
 
                 <button
                   type="submit"
@@ -1402,7 +1546,7 @@ function EmployerDashboard() {
                       Creating...
                     </>
                   ) : availabilityConflict ? (
-                    "⛔ Cannot Recruit (Worker Busy On Selected Dates)"
+                    "⛔ Worker Already Hired At This Time — Give Another Time"
                   ) : (
                     "Create Employment Record"
                   )}
@@ -1472,7 +1616,7 @@ function EmployerDashboard() {
                       <th>Email</th>
                       <th>Job Role</th>
                       <th>Salary</th>
-                      <th>Start Date</th>
+                      <th>Dates & Hours</th>
                       <th>Status</th>
                       <th>Verification</th>
                       <th>Certificate</th>
@@ -1528,9 +1672,32 @@ function EmployerDashboard() {
                             </td>
 
                             <td>
-                              {new Date(
-                                employment.startDate
-                              ).toLocaleDateString()}
+                              <div>
+                                <span className="fw-semibold">
+                                  {new Date(
+                                    employment.startDate
+                                  ).toLocaleDateString()}
+                                </span>
+                                {employment.endDate ? (
+                                  <span className="text-muted small">
+                                    {" "}→ {new Date(employment.endDate).toLocaleDateString()}
+                                  </span>
+                                ) : (
+                                  <span className="text-success small ms-1">
+                                    (Ongoing)
+                                  </span>
+                                )}
+                              </div>
+                              {employment.startTime && employment.endTime ? (
+                                <div className="mt-1">
+                                  <span
+                                    className="badge bg-light text-dark border"
+                                    style={{ fontSize: "0.74rem", fontWeight: "600" }}
+                                  >
+                                    🕒 {formatTime12h(employment.startTime)} – {formatTime12h(employment.endTime)}
+                                  </span>
+                                </div>
+                              ) : null}
                             </td>
 
                             <td>

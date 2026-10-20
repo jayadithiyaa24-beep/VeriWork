@@ -36,6 +36,18 @@ const employmentSchema = new mongoose.Schema(
       default: null,
     },
 
+    startTime: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
+    endTime: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["Active", "Completed"],
