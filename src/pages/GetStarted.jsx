@@ -527,7 +527,7 @@ function GetStarted() {
                   </Link>
 
                   <Link
-                    to="/login"
+                    to="/worker-login"
                     className="vw-account-secondary"
                   >
                     Worker Login

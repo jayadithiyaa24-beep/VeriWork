@@ -10,7 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
 
-import Login from "./pages/Login";
+import LoginPortal from "./pages/LoginPortal";
+import WorkerLogin from "./pages/WorkerLogin";
 import EmployerLogin from "./pages/EmployerLogin";
 
 import RegisterWorker from "./pages/RegisterWorker";
@@ -64,7 +65,7 @@ function SessionSecurityManager() {
         );
 
         if (hasWorker) {
-          navigate("/login");
+          navigate("/worker-login");
         } else if (hasEmployer) {
           navigate("/employer-login");
         }
@@ -170,12 +171,22 @@ function App() {
 
 
             {/* =================================================
-                WORKER AUTHENTICATION
+                PORTAL LOGIN SELECTION
             ================================================= */}
 
             <Route
               path="/login"
-              element={<Login />}
+              element={<LoginPortal />}
+            />
+
+
+            {/* =================================================
+                WORKER AUTHENTICATION
+            ================================================= */}
+
+            <Route
+              path="/worker-login"
+              element={<WorkerLogin />}
             />
 
             <Route

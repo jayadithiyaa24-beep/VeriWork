@@ -54,7 +54,7 @@ function RegisterWorker() {
       );
 
       setTimeout(() => {
-        navigate("/login");
+        navigate("/worker-login");
       }, 1000);
     } catch (error) {
       console.error("Worker Registration Error:", error);
@@ -1471,7 +1471,7 @@ function RegisterWorker() {
                       Already have a profile?{" "}
                     </span>
 
-                    <Link to="/login">
+                    <Link to="/worker-login">
                       Login here
                     </Link>
 

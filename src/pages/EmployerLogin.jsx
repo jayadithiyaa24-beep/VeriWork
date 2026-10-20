@@ -881,8 +881,25 @@ function EmployerLogin() {
                             Are you a domestic worker?{" "}
                           </span>
 
-                          <Link to="/login">
+                          <Link to="/worker-login">
                             Worker Login →
+                          </Link>
+                        </div>
+
+                        <div style={{ marginTop: "10px", textAlign: "center" }}>
+                          <Link
+                            to="/login"
+                            style={{
+                              fontSize: "0.74rem",
+                              color: "var(--color-text-muted, #756F68)",
+                              textDecoration: "none",
+                              fontWeight: "600",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px"
+                            }}
+                          >
+                            ← Back to Portal Selection
                           </Link>
                         </div>
 

@@ -180,14 +180,6 @@ function Navbar() {
         <div className="vw-desktop-actions">
 
           {!userType && (
-            <>
-              <Link
-                to="/login"
-                className="vw-login-button"
-              >
-                Login
-              </Link>
-
               <Link
                 to="/get-started"
                 className="vw-get-started-button"
@@ -200,7 +192,6 @@ function Navbar() {
                   →
                 </span>
               </Link>
-            </>
           )}
 
 
@@ -355,14 +346,6 @@ function Navbar() {
 
           {!userType ? (
             <div className="vw-mobile-actions">
-
-              <Link
-                to="/login"
-                className="vw-mobile-login"
-                onClick={closeMobileMenu}
-              >
-                Login
-              </Link>
 
               <Link
                 to="/get-started"

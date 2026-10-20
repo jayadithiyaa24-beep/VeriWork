@@ -305,7 +305,7 @@ function ProtectedRoute({ children, type = "worker" }) {
 
     return (
       <Navigate
-        to="/login"
+        to="/worker-login"
         replace
       />
     );

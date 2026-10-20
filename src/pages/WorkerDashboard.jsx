@@ -132,7 +132,7 @@ function WorkerDashboard() {
             "Session expired. Please login again."
           );
 
-          navigate("/login");
+          navigate("/worker-login");
         } else {
           toast.error(
             error.response?.data?.message ||
@@ -204,7 +204,7 @@ function WorkerDashboard() {
             "Session expired. Please login again."
           );
 
-          navigate("/login");
+          navigate("/worker-login");
         } else {
           toast.error(
             error.response?.data?.message ||
@@ -294,7 +294,7 @@ function WorkerDashboard() {
             "Session expired. Please login again."
           );
 
-          navigate("/login");
+          navigate("/worker-login");
         } else {
           toast.error(
             error.response?.data?.message ||
