@@ -1,6 +1,27 @@
 import api from "./api";
 
 // =================================
+// CHECK WORKER AVAILABILITY
+// =================================
+
+export const checkWorkerAvailability = async (queryData) => {
+  const token = sessionStorage.getItem("employerToken");
+
+  const response = await api.post(
+    "/employment/check-availability",
+    queryData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+
+// =================================
 // CREATE EMPLOYMENT
 // =================================
 

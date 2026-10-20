@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  checkWorkerAvailability,
   createEmployment,
   getEmployerEmployments,
   getWorkerEmployments,
@@ -17,6 +18,21 @@ const {
 // =================================
 // EMPLOYER ROUTES
 // =================================
+
+// Check worker availability / date conflicts
+router.post(
+  "/check-availability",
+  protect,
+  authorize("employer"),
+  checkWorkerAvailability
+);
+
+router.get(
+  "/check-availability",
+  protect,
+  authorize("employer"),
+  checkWorkerAvailability
+);
 
 // Create employment record
 router.post(

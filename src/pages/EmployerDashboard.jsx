@@ -6,6 +6,7 @@ import {
   createEmployment,
   getEmployerEmployments,
   completeEmployment,
+  checkWorkerAvailability,
 } from "../services/employmentService";
 
 import {
@@ -73,6 +74,12 @@ function EmployerDashboard() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedEmploymentForRating, setSelectedEmploymentForRating] = useState(null);
   const [registeringBlockchain, setRegisteringBlockchain] = useState(null);
+
+  // Worker availability conflict states
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityConflict, setAvailabilityConflict] = useState(null);
+  const [workerAvailabilityStatus, setWorkerAvailabilityStatus] = useState(null);
+  const [workerAvailabilityMsg, setWorkerAvailabilityMsg] = useState("");
 
   // Ratings received for this employer
   const [employerRatings, setEmployerRatings] = useState({
@@ -401,6 +408,59 @@ function EmployerDashboard() {
   }, [navigate]);
 
   // =================================
+  // CHECK WORKER AVAILABILITY ON DATE / EMAIL CHANGE
+  // =================================
+
+  useEffect(() => {
+    if (!formData.workerEmail || !formData.workerEmail.includes("@")) {
+      setAvailabilityConflict(null);
+      setWorkerAvailabilityStatus(null);
+      setWorkerAvailabilityMsg("");
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setAvailabilityLoading(true);
+      try {
+        const res = await checkWorkerAvailability({
+          workerEmail: formData.workerEmail,
+          startDate: formData.startDate || undefined,
+        });
+
+        if (!res.available && res.conflict) {
+          setAvailabilityConflict(res.conflict);
+          setWorkerAvailabilityStatus("conflict");
+          setWorkerAvailabilityMsg(
+            res.message || "Worker is already employed during these dates."
+          );
+        } else if (res.available) {
+          setAvailabilityConflict(null);
+          setWorkerAvailabilityStatus("available");
+          setWorkerAvailabilityMsg(
+            formData.startDate
+              ? `✓ Worker is free and available to start on ${new Date(formData.startDate).toLocaleDateString()}`
+              : "✓ Worker is registered and currently available"
+          );
+        }
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setAvailabilityConflict(null);
+          setWorkerAvailabilityStatus("not_found");
+          setWorkerAvailabilityMsg("No registered worker found with this email");
+        } else if (error.response?.data?.conflict) {
+          setAvailabilityConflict(error.response.data.conflict);
+          setWorkerAvailabilityStatus("conflict");
+          setWorkerAvailabilityMsg(error.response.data.message);
+        }
+      } finally {
+        setAvailabilityLoading(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [formData.workerEmail, formData.startDate]);
+
+  // =================================
   // HANDLE FORM CHANGE
   // =================================
 
@@ -417,6 +477,13 @@ function EmployerDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (availabilityConflict) {
+      toast.error(
+        `Cannot recruit: Worker is already working for ${availabilityConflict.employerName} during these dates (${availabilityConflict.formattedPeriod}).`
+      );
+      return;
+    }
 
     setLoading(true);
 
@@ -442,9 +509,18 @@ function EmployerDashboard() {
         startDate: "",
       });
 
+      setAvailabilityConflict(null);
+      setWorkerAvailabilityStatus(null);
+      setWorkerAvailabilityMsg("");
       setShowForm(false);
     } catch (error) {
       console.error(error);
+
+      if (error.response?.data?.conflict) {
+        setAvailabilityConflict(error.response.data.conflict);
+        setWorkerAvailabilityStatus("conflict");
+        setWorkerAvailabilityMsg(error.response.data.message);
+      }
 
       toast.error(
         error.response?.data?.message ||
@@ -1071,7 +1147,15 @@ function EmployerDashboard() {
                     <input
                       type="email"
                       name="workerEmail"
-                      className="form-control"
+                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      style={
+                        availabilityConflict
+                          ? {
+                              borderColor: "#DC2626",
+                              boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.12)",
+                            }
+                          : {}
+                      }
                       placeholder="Enter registered worker email"
                       value={
                         formData.workerEmail
@@ -1081,6 +1165,18 @@ function EmployerDashboard() {
                       }
                       required
                     />
+
+                    {availabilityLoading && formData.workerEmail && (
+                      <div className="small text-muted mt-1">
+                        ⏳ Checking worker availability...
+                      </div>
+                    )}
+
+                    {!availabilityLoading && workerAvailabilityStatus === "not_found" && (
+                      <div className="small text-danger mt-1">
+                        ⚠️ No registered worker found with this email
+                      </div>
+                    )}
 
                   </div>
 
@@ -1144,7 +1240,16 @@ function EmployerDashboard() {
                     <input
                       type="date"
                       name="startDate"
-                      className="form-control"
+                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      style={
+                        availabilityConflict
+                          ? {
+                              borderColor: "#DC2626",
+                              background: "#FFFBFB",
+                              boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.15)",
+                            }
+                          : {}
+                      }
                       value={
                         formData.startDate
                       }
@@ -1154,14 +1259,137 @@ function EmployerDashboard() {
                       required
                     />
 
+                    {availabilityConflict ? (
+                      <div className="small text-danger fw-bold mt-1" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <span>⛔ Worker is already working on this date ({availabilityConflict.formattedPeriod})</span>
+                      </div>
+                    ) : workerAvailabilityStatus === "available" && formData.startDate ? (
+                      <div className="small text-success fw-semibold mt-1">
+                        {workerAvailabilityMsg}
+                      </div>
+                    ) : null}
+
                   </div>
 
                 </div>
 
+                {/* ========================================================
+                    RED LINE PROMINENT CONFLICT BANNER
+                ======================================================== */}
+                {availabilityConflict && (
+                  <div
+                    className="vw-conflict-red-line-banner mb-4"
+                    style={{
+                      background: "#FEF2F2",
+                      borderLeft: "6px solid #DC2626",
+                      borderTop: "1px solid #FCA5A5",
+                      borderRight: "1px solid #FCA5A5",
+                      borderBottom: "1px solid #FCA5A5",
+                      borderRadius: "10px",
+                      padding: "16px 20px",
+                      boxShadow: "0 6px 18px rgba(220, 38, 38, 0.10)",
+                      animation: "fadeIn 0.3s ease",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                      <div
+                        style={{
+                          background: "#DC2626",
+                          color: "#FFFFFF",
+                          width: "26px",
+                          height: "26px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          fontWeight: "800",
+                          fontSize: "13px",
+                          marginTop: "2px",
+                        }}
+                      >
+                        ✕
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            color: "#991B1B",
+                            fontWeight: "800",
+                            fontSize: "0.92rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span>WORKER ALREADY EMPLOYED DURING THESE DATES</span>
+                          <span
+                            style={{
+                              background: "#FEE2E2",
+                              color: "#B91C1C",
+                              fontSize: "0.68rem",
+                              padding: "2px 8px",
+                              borderRadius: "999px",
+                              fontWeight: "700",
+                              border: "1px solid #F87171",
+                            }}
+                          >
+                            DATE CONFLICT
+                          </span>
+                        </div>
+
+                        <p
+                          style={{
+                            margin: "6px 0 10px",
+                            color: "#7F1D1D",
+                            fontSize: "0.86rem",
+                            lineHeight: "1.5",
+                          }}
+                        >
+                          This domestic worker is currently actively employed by{" "}
+                          <strong style={{ color: "#991B1B" }}>
+                            {availabilityConflict.employerName}
+                          </strong>{" "}
+                          as <em>"{availabilityConflict.jobRole}"</em> for the period{" "}
+                          <strong>{availabilityConflict.formattedPeriod}</strong>. You cannot recruit this worker during the same dates.
+                        </p>
+
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            background: "#FFFFFF",
+                            border: "1px dashed #DC2626",
+                            borderRadius: "6px",
+                            padding: "6px 12px",
+                            fontSize: "0.76rem",
+                            color: "#991B1B",
+                            fontWeight: "600",
+                          }}
+                        >
+                          <span>⛔ Recruitment Blocked:</span> Worker must be free and unassigned during your requested start date.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="btn btn-success"
-                  disabled={loading}
+                  className={`btn ${availabilityConflict ? "btn-secondary" : "btn-success"}`}
+                  disabled={loading || Boolean(availabilityConflict) || availabilityLoading}
+                  style={
+                    availabilityConflict
+                      ? {
+                          cursor: "not-allowed",
+                          opacity: 0.65,
+                          background: "#6B7280",
+                          borderColor: "#6B7280",
+                        }
+                      : {}
+                  }
                 >
 
                   {loading ? (
@@ -1173,6 +1401,8 @@ function EmployerDashboard() {
 
                       Creating...
                     </>
+                  ) : availabilityConflict ? (
+                    "⛔ Cannot Recruit (Worker Busy On Selected Dates)"
                   ) : (
                     "Create Employment Record"
                   )}
