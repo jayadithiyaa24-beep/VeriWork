@@ -58,6 +58,16 @@ describe("Worker Employment Date & Time Conflict Validation", () => {
       assert.equal(checkTimeWindowOverlap("21:00", "06:00", "22:00", "02:00"), true);
       assert.equal(checkTimeWindowOverlap("22:00", "04:00", "09:00", "17:00"), false);
     });
+
+    it("should ALLOW another employer to hire from 5:00 PM to 9:00 AM when worker is hired from 9:00 AM to 5:00 PM", () => {
+      // User requirement: Worker works 9am-5pm; another employer can hire from 5pm-9am (non-overlapping)
+      assert.equal(checkTimeWindowOverlap("17:00", "09:00", "09:00", "17:00"), false);
+      // But cannot hire 9am-7am (covers 9am-5pm)
+      assert.equal(checkTimeWindowOverlap("09:00", "07:00", "09:00", "17:00"), true);
+      // And cannot hire inside 9am-5pm (e.g. 10am-2pm or 2pm-8pm)
+      assert.equal(checkTimeWindowOverlap("10:00", "14:00", "09:00", "17:00"), true);
+      assert.equal(checkTimeWindowOverlap("14:00", "20:00", "09:00", "17:00"), true);
+    });
   });
 
   describe("Calendar Date Overlap (checkDateRangeOverlap)", () => {

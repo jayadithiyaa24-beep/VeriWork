@@ -202,16 +202,15 @@ const checkWorkerAvailability = async (req, res) => {
       });
     }
 
-    // Daily work start time must be less than daily work end time
+    // Start time and end time cannot be identical (duration cannot be 0)
     if (startTime && endTime) {
       const sM = parseTimeToMinutes(startTime);
       const eM = parseTimeToMinutes(endTime);
-      if (sM !== null && eM !== null && sM >= eM) {
+      if (sM !== null && eM !== null && sM === eM) {
         return res.status(400).json({
           success: false,
           available: false,
-          isInvalidTimeRange: true,
-          message: "Daily work start time must be less than daily work end time (e.g. 09:00 AM to 05:00 PM).",
+          message: "Daily work start time and end time cannot be the same.",
         });
       }
     }
@@ -317,14 +316,14 @@ const createEmployment = async (req, res) => {
       });
     }
 
+    // Start time and end time cannot be identical (duration cannot be 0)
     if (startTime && endTime) {
       const sM = parseTimeToMinutes(startTime);
       const eM = parseTimeToMinutes(endTime);
-      if (sM !== null && eM !== null && sM >= eM) {
+      if (sM !== null && eM !== null && sM === eM) {
         return res.status(400).json({
           success: false,
-          isInvalidTimeRange: true,
-          message: "Daily work start time must be less than daily work end time",
+          message: "Daily work start time and end time cannot be the same.",
         });
       }
     }

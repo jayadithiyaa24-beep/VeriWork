@@ -72,6 +72,7 @@ function EmployerDashboard() {
   });
 
   // Helper to format 24h time to 12h AM/PM
+  // Helper to format 24h time to 12h AM/PM
   const formatTime12h = (time24) => {
     if (!time24) return "";
     const parts = time24.split(":");
@@ -81,6 +82,7 @@ function EmployerDashboard() {
     const ampm = h >= 12 ? "PM" : "AM";
     h = h % 12;
     if (h === 0) h = 12;
+    return `${h}:${m} ${ampm}`;
   };
 
   // Convert "HH:MM" to minutes for reliable numerical comparison
@@ -93,13 +95,20 @@ function EmployerDashboard() {
     return h * 60 + m;
   };
 
-  // Check if daily work start time is invalid (must be strictly less than end time)
-  const isInvalidTimeRange = Boolean(
+  // Start and end time cannot be identical (duration cannot be 0)
+  const isZeroDuration = Boolean(
+    formData.startTime &&
+    formData.endTime &&
+    formData.startTime === formData.endTime
+  );
+
+  // Check if shift spans overnight (e.g. 5:00 PM to 9:00 AM)
+  const isOvernightShift = Boolean(
     formData.startTime &&
     formData.endTime &&
     parseTimeToMinutes(formData.startTime) !== null &&
     parseTimeToMinutes(formData.endTime) !== null &&
-    parseTimeToMinutes(formData.startTime) >= parseTimeToMinutes(formData.endTime)
+    parseTimeToMinutes(formData.startTime) > parseTimeToMinutes(formData.endTime)
   );
 
   // Rating & Completion states
@@ -453,13 +462,11 @@ function EmployerDashboard() {
       return;
     }
 
-    // Daily work start time must be less than daily work end time
-    if (isInvalidTimeRange) {
+    // Daily work start time and end time cannot be identical
+    if (isZeroDuration) {
       setAvailabilityConflict(null);
       setWorkerAvailabilityStatus("invalid_time");
-      setWorkerAvailabilityMsg(
-        `Daily work start time (${formatTime12h(formData.startTime)}) must be less than daily work end time (${formatTime12h(formData.endTime)}).`
-      );
+      setWorkerAvailabilityMsg("Daily work start time and end time cannot be the same.");
       setAvailabilityLoading(false);
       return;
     }
@@ -489,11 +496,7 @@ function EmployerDashboard() {
           );
         }
       } catch (error) {
-        if (error.response?.data?.isInvalidTimeRange) {
-          setAvailabilityConflict(null);
-          setWorkerAvailabilityStatus("invalid_time");
-          setWorkerAvailabilityMsg(error.response.data.message);
-        } else if (error.response?.status === 404) {
+        if (error.response?.status === 404) {
           setAvailabilityConflict(null);
           setWorkerAvailabilityStatus("not_found");
           setWorkerAvailabilityMsg("No registered worker found with this email");
@@ -501,6 +504,10 @@ function EmployerDashboard() {
           setAvailabilityConflict(error.response.data.conflict);
           setWorkerAvailabilityStatus("conflict");
           setWorkerAvailabilityMsg(error.response.data.message);
+        } else {
+          setAvailabilityConflict(null);
+          setWorkerAvailabilityStatus("error");
+          setWorkerAvailabilityMsg(error.response?.data?.message || "Error checking worker availability");
         }
       } finally {
         setAvailabilityLoading(false);
@@ -514,7 +521,7 @@ function EmployerDashboard() {
     formData.endDate,
     formData.startTime,
     formData.endTime,
-    isInvalidTimeRange,
+    isZeroDuration,
   ]);
 
   // =================================
@@ -535,8 +542,8 @@ function EmployerDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isInvalidTimeRange) {
-      toast.error("Daily work start time must be less than daily work end time.");
+    if (isZeroDuration) {
+      toast.error("Daily work start time and end time cannot be the same.");
       return;
     }
 
@@ -1368,9 +1375,9 @@ function EmployerDashboard() {
                     <input
                       type="time"
                       name="startTime"
-                      className={`form-control ${availabilityConflict || isInvalidTimeRange ? "is-invalid" : ""}`}
+                      className={`form-control ${availabilityConflict || isZeroDuration ? "is-invalid" : ""}`}
                       style={
-                        availabilityConflict || isInvalidTimeRange
+                        availabilityConflict || isZeroDuration
                           ? {
                               borderColor: "#DC2626",
                               background: "#FFFBFB",
@@ -1406,9 +1413,9 @@ function EmployerDashboard() {
                     <input
                       type="time"
                       name="endTime"
-                      className={`form-control ${availabilityConflict || isInvalidTimeRange ? "is-invalid" : ""}`}
+                      className={`form-control ${availabilityConflict || isZeroDuration ? "is-invalid" : ""}`}
                       style={
-                        availabilityConflict || isInvalidTimeRange
+                        availabilityConflict || isZeroDuration
                           ? {
                               borderColor: "#DC2626",
                               background: "#FFFBFB",
@@ -1426,14 +1433,29 @@ function EmployerDashboard() {
                     />
 
                     {formData.endTime && (
-                      <div className="small text-muted mt-1">
-                        Ends: <strong>{formatTime12h(formData.endTime)}</strong>
+                      <div className="small text-muted mt-1 d-flex align-items-center gap-1 flex-wrap">
+                        <span>Ends: <strong>{formatTime12h(formData.endTime)}</strong></span>
+                        {isOvernightShift && (
+                          <span
+                            className="badge"
+                            style={{
+                              background: "#FEF3C7",
+                              color: "#92400E",
+                              border: "1px solid #FCD34D",
+                              fontSize: "0.72rem",
+                              fontWeight: "600",
+                              padding: "2px 6px",
+                            }}
+                          >
+                            🌙 Overnight (Next Day)
+                          </span>
+                        )}
                       </div>
                     )}
 
-                    {isInvalidTimeRange && (
+                    {isZeroDuration && (
                       <div className="small text-danger fw-bold mt-1">
-                        ⚠️ End time must be later than start time ({formatTime12h(formData.startTime)}).
+                        ⚠️ End time cannot be the same as start time.
                       </div>
                     )}
 
@@ -1441,22 +1463,17 @@ function EmployerDashboard() {
 
                 </div>
 
-                {isInvalidTimeRange ? (
+                {isZeroDuration ? (
                   <div
-                    className="alert alert-danger d-flex align-items-center mb-4 py-2 px-3"
+                    className="alert alert-warning d-flex align-items-center mb-4 py-2 px-3"
                     style={{
                       borderRadius: "8px",
                       fontSize: "0.85rem",
-                      background: "#FEF2F2",
-                      borderColor: "#FCA5A5",
-                      color: "#991B1B",
                     }}
                   >
                     <span className="me-2 fs-5">⚠️</span>
                     <div>
-                      <strong>Invalid Work Hours:</strong> Daily work start time (
-                      <strong>{formatTime12h(formData.startTime)}</strong>) must be less than daily work end time (
-                      <strong>{formatTime12h(formData.endTime)}</strong>). Please select an end time later than start time.
+                      Daily work start time and end time cannot be identical. Please specify a work duration.
                     </div>
                   </div>
                 ) : availabilityConflict ? (
@@ -1561,7 +1578,7 @@ function EmployerDashboard() {
                       </div>
                     </div>
                   </div>
-                ) : workerAvailabilityStatus === "available" && formData.startDate && !isInvalidTimeRange ? (
+                ) : workerAvailabilityStatus === "available" && formData.startDate && !isZeroDuration ? (
                   <div
                     className="alert alert-success d-flex align-items-center mb-4 py-2 px-3"
                     style={{ borderRadius: "8px", fontSize: "0.82rem" }}
@@ -1569,7 +1586,7 @@ function EmployerDashboard() {
                     <span className="me-2">✓</span>
                     <span>
                       {formData.startTime && formData.endTime
-                        ? `Time slot available! Worker is free between ${formatTime12h(formData.startTime)} and ${formatTime12h(formData.endTime)}.`
+                        ? `Time slot available! Worker is free between ${formatTime12h(formData.startTime)} and ${formatTime12h(formData.endTime)}${isOvernightShift ? " (overnight)" : ""}.`
                         : "Worker is free and available on this date."}
                     </span>
                   </div>
@@ -1577,10 +1594,10 @@ function EmployerDashboard() {
 
                 <button
                   type="submit"
-                  className={`btn ${availabilityConflict || isInvalidTimeRange ? "btn-secondary" : "btn-success"}`}
-                  disabled={loading || Boolean(availabilityConflict) || isInvalidTimeRange || availabilityLoading}
+                  className={`btn ${availabilityConflict || isZeroDuration ? "btn-secondary" : "btn-success"}`}
+                  disabled={loading || Boolean(availabilityConflict) || isZeroDuration || availabilityLoading}
                   style={
-                    availabilityConflict || isInvalidTimeRange
+                    availabilityConflict || isZeroDuration
                       ? {
                           cursor: "not-allowed",
                           opacity: 0.65,
@@ -1600,8 +1617,8 @@ function EmployerDashboard() {
 
                       Creating...
                     </>
-                  ) : isInvalidTimeRange ? (
-                    "⚠️ Daily Work Start Time Must Be Less Than End Time"
+                  ) : isZeroDuration ? (
+                    "⚠️ Start Time and End Time Cannot Be Identical"
                   ) : availabilityConflict ? (
                     "⛔ Worker Already Hired At This Time — Give Another Time"
                   ) : (
