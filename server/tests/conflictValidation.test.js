@@ -51,6 +51,13 @@ describe("Worker Employment Date & Time Conflict Validation", () => {
       // Back-to-back: 06:00-07:00 vs 07:00-08:00 -> NO overlap
       assert.equal(checkTimeWindowOverlap("06:00", "07:00", "07:00", "08:00"), false);
     });
+
+    it("should detect conflict when a wrapping window (e.g. 09:00 to 07:00 next day) encompasses 09:00 to 17:00", () => {
+      // User scenario: 9 a.m to 7 a.m includes 9 a.m to 5 p.m
+      assert.equal(checkTimeWindowOverlap("09:00", "07:00", "09:00", "17:00"), true);
+      assert.equal(checkTimeWindowOverlap("21:00", "06:00", "22:00", "02:00"), true);
+      assert.equal(checkTimeWindowOverlap("22:00", "04:00", "09:00", "17:00"), false);
+    });
   });
 
   describe("Calendar Date Overlap (checkDateRangeOverlap)", () => {

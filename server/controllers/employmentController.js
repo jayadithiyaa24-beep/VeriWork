@@ -71,7 +71,12 @@ const checkDateRangeOverlap = (d1Start, d1End, d2Start, d2End, d1Active, d2Activ
   return s1 <= end2 && s2 <= end1;
 };
 
-// Check if two daily time windows overlap (e.g. 18:00-19:00 vs 09:00-17:00)
+// Helper to check standard non-wrapping interval overlap
+const checkIntervalsOverlap = (startA, endA, startB, endB) => {
+  return startA < endB && endA > startB;
+};
+
+// Check if two daily time windows overlap (handles standard day windows and midnight-spanning windows)
 const checkTimeWindowOverlap = (timeAStart, timeAEnd, timeBStart, timeBEnd) => {
   const sA = parseTimeToMinutes(timeAStart);
   const eA = parseTimeToMinutes(timeAEnd);
@@ -84,8 +89,30 @@ const checkTimeWindowOverlap = (timeAStart, timeAEnd, timeBStart, timeBEnd) => {
   const actualSB = sB !== null ? sB : 9 * 60;
   const actualEB = eB !== null ? eB : 17 * 60;
 
-  // Strict interval overlap: [actualSA, actualEA] and [actualSB, actualEB]
-  return actualSA < actualEB && actualEA > actualSB;
+  // Normal non-wrapping windows
+  if (actualSA < actualEA && actualSB < actualEB) {
+    return actualSA < actualEB && actualEA > actualSB;
+  }
+
+  // If any window wraps across midnight (e.g., 09:00 to 07:00 next day, or 21:00 to 06:00),
+  // split into sub-intervals within the 24-hour cycle [0, 1440]
+  const intervalsA = actualSA < actualEA
+    ? [[actualSA, actualEA]]
+    : [[actualSA, 24 * 60], [0, actualEA]];
+
+  const intervalsB = actualSB < actualEB
+    ? [[actualSB, actualEB]]
+    : [[actualSB, 24 * 60], [0, actualEB]];
+
+  for (const [aStart, aEnd] of intervalsA) {
+    for (const [bStart, bEnd] of intervalsB) {
+      if (checkIntervalsOverlap(aStart, aEnd, bStart, bEnd)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 };
 
 // Check both date AND time conflict
@@ -173,6 +200,20 @@ const checkWorkerAvailability = async (req, res) => {
         success: false,
         message: "Worker email is required",
       });
+    }
+
+    // Daily work start time must be less than daily work end time
+    if (startTime && endTime) {
+      const sM = parseTimeToMinutes(startTime);
+      const eM = parseTimeToMinutes(endTime);
+      if (sM !== null && eM !== null && sM >= eM) {
+        return res.status(400).json({
+          success: false,
+          available: false,
+          isInvalidTimeRange: true,
+          message: "Daily work start time must be less than daily work end time (e.g. 09:00 AM to 05:00 PM).",
+        });
+      }
     }
 
     const worker = await Worker.findOne({ email: workerEmail }).select("_id fullName email");
@@ -282,7 +323,8 @@ const createEmployment = async (req, res) => {
       if (sM !== null && eM !== null && sM >= eM) {
         return res.status(400).json({
           success: false,
-          message: "Daily work end time must be later than start time",
+          isInvalidTimeRange: true,
+          message: "Daily work start time must be less than daily work end time",
         });
       }
     }

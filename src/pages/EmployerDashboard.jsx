@@ -81,8 +81,26 @@ function EmployerDashboard() {
     const ampm = h >= 12 ? "PM" : "AM";
     h = h % 12;
     if (h === 0) h = 12;
-    return `${h}:${m} ${ampm}`;
   };
+
+  // Convert "HH:MM" to minutes for reliable numerical comparison
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return null;
+    const parts = timeStr.split(":");
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) || 0;
+    if (isNaN(h)) return null;
+    return h * 60 + m;
+  };
+
+  // Check if daily work start time is invalid (must be strictly less than end time)
+  const isInvalidTimeRange = Boolean(
+    formData.startTime &&
+    formData.endTime &&
+    parseTimeToMinutes(formData.startTime) !== null &&
+    parseTimeToMinutes(formData.endTime) !== null &&
+    parseTimeToMinutes(formData.startTime) >= parseTimeToMinutes(formData.endTime)
+  );
 
   // Rating & Completion states
   const [completingEmployment, setCompletingEmployment] = useState(null);
@@ -435,6 +453,17 @@ function EmployerDashboard() {
       return;
     }
 
+    // Daily work start time must be less than daily work end time
+    if (isInvalidTimeRange) {
+      setAvailabilityConflict(null);
+      setWorkerAvailabilityStatus("invalid_time");
+      setWorkerAvailabilityMsg(
+        `Daily work start time (${formatTime12h(formData.startTime)}) must be less than daily work end time (${formatTime12h(formData.endTime)}).`
+      );
+      setAvailabilityLoading(false);
+      return;
+    }
+
     const timer = setTimeout(async () => {
       setAvailabilityLoading(true);
       try {
@@ -460,7 +489,11 @@ function EmployerDashboard() {
           );
         }
       } catch (error) {
-        if (error.response?.status === 404) {
+        if (error.response?.data?.isInvalidTimeRange) {
+          setAvailabilityConflict(null);
+          setWorkerAvailabilityStatus("invalid_time");
+          setWorkerAvailabilityMsg(error.response.data.message);
+        } else if (error.response?.status === 404) {
           setAvailabilityConflict(null);
           setWorkerAvailabilityStatus("not_found");
           setWorkerAvailabilityMsg("No registered worker found with this email");
@@ -481,6 +514,7 @@ function EmployerDashboard() {
     formData.endDate,
     formData.startTime,
     formData.endTime,
+    isInvalidTimeRange,
   ]);
 
   // =================================
@@ -501,8 +535,8 @@ function EmployerDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
-      toast.error("Daily work end time must be later than start time.");
+    if (isInvalidTimeRange) {
+      toast.error("Daily work start time must be less than daily work end time.");
       return;
     }
 
@@ -1334,9 +1368,9 @@ function EmployerDashboard() {
                     <input
                       type="time"
                       name="startTime"
-                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      className={`form-control ${availabilityConflict || isInvalidTimeRange ? "is-invalid" : ""}`}
                       style={
-                        availabilityConflict
+                        availabilityConflict || isInvalidTimeRange
                           ? {
                               borderColor: "#DC2626",
                               background: "#FFFBFB",
@@ -1372,9 +1406,9 @@ function EmployerDashboard() {
                     <input
                       type="time"
                       name="endTime"
-                      className={`form-control ${availabilityConflict ? "is-invalid" : ""}`}
+                      className={`form-control ${availabilityConflict || isInvalidTimeRange ? "is-invalid" : ""}`}
                       style={
-                        availabilityConflict
+                        availabilityConflict || isInvalidTimeRange
                           ? {
                               borderColor: "#DC2626",
                               background: "#FFFBFB",
@@ -1397,14 +1431,35 @@ function EmployerDashboard() {
                       </div>
                     )}
 
+                    {isInvalidTimeRange && (
+                      <div className="small text-danger fw-bold mt-1">
+                        ⚠️ End time must be later than start time ({formatTime12h(formData.startTime)}).
+                      </div>
+                    )}
+
                   </div>
 
                 </div>
 
-                {/* ========================================================
-                    RED LINE PROMINENT CONFLICT BANNER
-                ======================================================== */}
-                {availabilityConflict ? (
+                {isInvalidTimeRange ? (
+                  <div
+                    className="alert alert-danger d-flex align-items-center mb-4 py-2 px-3"
+                    style={{
+                      borderRadius: "8px",
+                      fontSize: "0.85rem",
+                      background: "#FEF2F2",
+                      borderColor: "#FCA5A5",
+                      color: "#991B1B",
+                    }}
+                  >
+                    <span className="me-2 fs-5">⚠️</span>
+                    <div>
+                      <strong>Invalid Work Hours:</strong> Daily work start time (
+                      <strong>{formatTime12h(formData.startTime)}</strong>) must be less than daily work end time (
+                      <strong>{formatTime12h(formData.endTime)}</strong>). Please select an end time later than start time.
+                    </div>
+                  </div>
+                ) : availabilityConflict ? (
                   <div
                     className="vw-conflict-red-line-banner mb-4"
                     style={{
@@ -1506,7 +1561,7 @@ function EmployerDashboard() {
                       </div>
                     </div>
                   </div>
-                ) : workerAvailabilityStatus === "available" && formData.startDate ? (
+                ) : workerAvailabilityStatus === "available" && formData.startDate && !isInvalidTimeRange ? (
                   <div
                     className="alert alert-success d-flex align-items-center mb-4 py-2 px-3"
                     style={{ borderRadius: "8px", fontSize: "0.82rem" }}
@@ -1522,10 +1577,10 @@ function EmployerDashboard() {
 
                 <button
                   type="submit"
-                  className={`btn ${availabilityConflict ? "btn-secondary" : "btn-success"}`}
-                  disabled={loading || Boolean(availabilityConflict) || availabilityLoading}
+                  className={`btn ${availabilityConflict || isInvalidTimeRange ? "btn-secondary" : "btn-success"}`}
+                  disabled={loading || Boolean(availabilityConflict) || isInvalidTimeRange || availabilityLoading}
                   style={
-                    availabilityConflict
+                    availabilityConflict || isInvalidTimeRange
                       ? {
                           cursor: "not-allowed",
                           opacity: 0.65,
@@ -1545,6 +1600,8 @@ function EmployerDashboard() {
 
                       Creating...
                     </>
+                  ) : isInvalidTimeRange ? (
+                    "⚠️ Daily Work Start Time Must Be Less Than End Time"
                   ) : availabilityConflict ? (
                     "⛔ Worker Already Hired At This Time — Give Another Time"
                   ) : (
