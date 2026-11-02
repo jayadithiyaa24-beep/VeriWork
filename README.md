@@ -8,8 +8,8 @@ VeriWork is a decentralized platform that helps informal domestic workers (house
 
 ```
                ┌────────────────────────────────────────────────────────┐
-               │         Frontend: React 19 + Vite (Netlify)            │
-               │        https://veriworkblockchain.netlify.app          │
+               │         Frontend: React 19 + Vite (Render Cloud)       │
+               │            https://veriwork-e4th.onrender.com          │
                └──────────────────────────┬─────────────────────────────┘
                                           │ REST API & Auth Bearer
                                           ▼
@@ -58,8 +58,8 @@ VeriWork is a decentralized platform that helps informal domestic workers (house
 
 | Component | Target / Environment | URL / Address |
 | :--- | :--- | :--- |
-| **Frontend** | Netlify Production | `https://veriworkblockchain.netlify.app` |
-| **Backend API** | Render Web Service | `https://veriwork-e4th.onrender.com` |
+| **Frontend** | Render Cloud Production | `https://veriwork-e4th.onrender.com` |
+| **Backend API** | Render Cloud Web Service | `https://veriwork-e4th.onrender.com` |
 | **Network** | Ethereum Sepolia Testnet | Chain ID: `11155111` |
 | **Smart Contract** | VeriWorkCertificate.sol | [`0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965`](https://sepolia.etherscan.io/address/0xe2CC881c9aE8F1C6D1209C6171b84aeDB3134965) |
 
@@ -98,7 +98,7 @@ veriwork/
 
 ```env
 PORT=5000
-FRONTEND_URL=https://veriworkblockchain.netlify.app
+FRONTEND_URL=https://veriwork-e4th.onrender.com
 MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/veriwork?retryWrites=true&w=majority
 
 # Authentication

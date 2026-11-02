@@ -48,26 +48,27 @@ import RatingModal from "../components/RatingModal";
 import RatingReviewsSection from "../components/RatingReviewsSection";
 
 
+// Helper to format 24h time ("HH:MM") to 12h AM/PM
+export const formatTime12h = (time24) => {
+  if (!time24) return "";
+  const parts = time24.split(":");
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || "00";
+  if (isNaN(h)) return time24;
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${ampm}`;
+};
+
 function WorkerDashboard() {
   const navigate = useNavigate();
-
-  const formatTime12h = (time24) => {
-    if (!time24) return "";
-    const parts = time24.split(":");
-    let h = parseInt(parts[0], 10);
-    const m = parts[1] || "00";
-    if (isNaN(h)) return time24;
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12;
-    if (h === 0) h = 12;
-    return `${h}:${m} ${ampm}`;
-  };
 
   // =================================
   // STATE
   // =================================
 
-  const [worker, setWorker] = useState(null);
+  const [worker, setWorker] = useState(() => storage.getWorker() || null);
   const [employments, setEmployments] = useState([]);
   const [certificates, setCertificates] = useState([]);
 
@@ -535,7 +536,24 @@ function WorkerDashboard() {
 
 
   if (!worker) {
-    return null;
+    return (
+      <div className="vw-worker-dashboard">
+        <div className="container py-5 text-center">
+          <div className="vw-dashboard-empty">
+            <h3>Unable to load worker profile</h3>
+            <p>Please check your connection or log in again.</p>
+            <button
+              className="vw-service-button ochre mt-3"
+              style={{ margin: "0 auto", display: "inline-flex" }}
+              onClick={() => navigate("/worker-login")}
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+        <DashboardStyles />
+      </div>
+    );
   }
 
 

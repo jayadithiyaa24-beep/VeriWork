@@ -22,9 +22,9 @@ const app = express();
 
 app.use(securityHeaders);
 
-// Allow the deployed frontend and local development frontend.
+// Allow the deployed Render frontend and local development frontend.
 const allowedOrigins = [
-  "https://veriworkblockchain.netlify.app",
+  "https://veriwork-e1th.onrender.com",
   "https://veriwork-e4th.onrender.com",
   "http://localhost:5000",
   "http://localhost:5173",

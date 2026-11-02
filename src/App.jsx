@@ -6,6 +6,7 @@ import storage from "./utils/storage";
 import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -147,7 +148,7 @@ function App() {
         ===================================================== */}
 
         <main className="vw-app-main">
-
+          <ErrorBoundary>
           <Routes>
 
             {/* =================================================
@@ -295,7 +296,7 @@ function App() {
             />
 
           </Routes>
-
+          </ErrorBoundary>
         </main>
 
 

@@ -929,7 +929,7 @@ const downloadPublicCertificatePdf = async (req, res) => {
     const dbHashMatches =
       hasStoredHash &&
       recalculatedHash.toLowerCase() ===
-        String(certificate.blockchainHash).toLowerCase();
+      String(certificate.blockchainHash).toLowerCase();
 
     // 3. Query on-chain record independently
     let onChainRecord = null;
